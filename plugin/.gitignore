@@ -1,0 +1,5 @@
+/protobuf-install/
+/build/
+/cmake-build-*
+/.vscode
+/.idea

@@ -1,0 +1,90 @@
+syntax = "proto3";
+
+package xplane;
+
+message Header {
+    string sessionID = 1;
+    uint64 msgID = 2;
+}
+
+message Result {
+    bool success = 1;
+    string error = 2;
+}
+
+enum Command {
+    UnknownCommand = 0;
+    CreateSession = 1;
+    CloseSession = 2;
+    GetPosition = 3;
+    SubscribePosition = 4;
+    SetPosition = 5;
+    GetDataRefs = 6;
+    SetDataRefs = 7;
+    SubscribeData = 8;
+    SetSubscribedData = 9;
+    CreateInstance = 10;
+    DestroyInstance = 11;
+    InstanceSetPosition = 12;
+}
+
+message SessionOptions {
+    int32 ttl_seconds = 1;
+}
+
+message RPC {
+    Header header = 1;
+    Result result = 2;
+    Command command = 3;
+}
+
+message Box {
+    int32 left = 1;
+    int32 top = 2;
+    int32 right = 3;
+    int32 bottom = 4;
+    // Used for the monitor ID
+    int32 id = 5;
+}
+
+message Info {
+    int32 plugin_id = 1;
+    int64 start_time_unix = 2;
+
+    Box screen_bounds = 10;
+    repeated Box monitor_bounds = 11;
+}
+
+message Stats {
+    // Time our handler took in microseconds
+    int32 handlerTimeUsec = 1;
+}
+
+message PluginMessage {
+    int32 plugin_id = 1;
+    int32 msg_id = 2;
+    uint64 param = 3; // The inParam pointer value
+    // TODO: Perhaps add name of sending plugin
+}
+
+// Message is used for pubsub broadcasts
+message Message {
+    enum Type {
+        Unknown = 0;
+        Stats = 10;
+        Info = 11;
+        PluginMessage = 12;
+    }
+
+    Type msg_type = 1;
+
+    //
+    // Which of these are set depends on the message type
+    //
+
+    Stats stats = 10;
+    Info info = 11;
+    PluginMessage plugin_message = 12;
+    // If enabled, all requests and responses will be broadcast to the 'rpc' channel for debugging.
+    RPC rpc = 13;
+}
