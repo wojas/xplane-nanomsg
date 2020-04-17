@@ -13,7 +13,7 @@ public:
   xplane::Stats *st;
 
   Statistics();
-  void set_publish_error(int lastErrorCode);
+  void setPublishError(int lastErrorCode);
   string SerializeAsString();
 };
 

@@ -52,7 +52,7 @@ protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS proto/xplane.proto)
 #find_package(nng CONFIG REQUIRED)
 add_subdirectory(nng)
 
-set(XP_SOURCES Plugin.cpp ${PROTO_SRCS} ${PROTO_HDRS} Publisher.cpp Publisher.h Statistics.cpp Statistics.h)
+set(XP_SOURCES Plugin.cpp ${PROTO_SRCS} ${PROTO_HDRS} Publisher.cpp Publisher.h Statistics.cpp Statistics.h Info.cpp Info.h)
 
 add_subdirectory(xplane_sdk)
 add_xplane_plugin(nanomsg-plugin 301 ${XP_SOURCES})

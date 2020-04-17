@@ -5,6 +5,7 @@
 #include <nng/nng.h>
 
 #include "Statistics.h"
+#include "Info.h"
 
 using namespace std;
 
@@ -21,6 +22,8 @@ public:
   explicit Publisher(string url, Statistics *stats);
 
   void publish(const std::string& topic, const std::string& pb);
+  void publishStats();
+  void publishInfo(Info *info);
   bool open();
   bool close();
   string lastError() const;

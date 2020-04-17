@@ -2,6 +2,7 @@
 #include <windows.h>
 #endif
 
+// TODO: We do not use OpenGL yet
 #if LIN
 #include <GL/gl.h>
 #elif __GNUC__
@@ -10,11 +11,11 @@
 #include <GL/gl.h>
 #endif
 
+// TODO: Perhaps 300 is sufficient?
 #ifndef XPLM301
 #error This is made to be compiled against the XPLM301 SDK
 #endif
 
-#include "XPLMDisplay.h"
 #include "XPLMProcessing.h"
 #include "XPLMPlugin.h"
 
@@ -23,11 +24,10 @@
 #include <cstdio>
 #include <ctime>
 
-#include <nng/nng.h>
-
 #include "xplane.pb.h"
 #include "Publisher.h"
 #include "Statistics.h"
+#include "Info.h"
 
 // TODO: How to support multiple X-Plane instances on the same machine?
 constexpr auto& RPC_URL = "tcp://0.0.0.0:27471";
@@ -39,43 +39,9 @@ time_t startTime;
 XPLMFlightLoopID afterFlightLoopID;
 
 Statistics *stats;
+Info *info;
 Publisher *publisher;
 
-// TODO: Move to Info class
-xplane::Message infoMsg;
-
-// TODO: Move to Info class
-void update_screen_info() {
-  // TODO: These can change during a flight
-  auto info = infoMsg.mutable_info();
-
-  // Bounds of the global X-Plane desktop
-  // Note that we're not guaranteed that the main monitor's lower left is at (0, 0)...
-  // We'll need to query for the global desktop bounds!
-  int left, bottom, right, top;
-  XPLMGetScreenBoundsGlobal(&left, &top, &right, &bottom);
-  info->clear_screen_bounds();
-  auto bounds = info->mutable_screen_bounds();
-  bounds->set_left(left);
-  bounds->set_bottom(bottom);
-  bounds->set_right(right);
-  bounds->set_top(top);
-
-  // Information about all full screens used by X-Plane (not in window mode!)
-  info->clear_monitor_bounds();
-  XPLMGetAllMonitorBoundsGlobal([] (int monIdx, int left, int top,
-                                    int right, int bottom, void*) {
-    auto info = infoMsg.mutable_info();
-    auto bounds = info->add_monitor_bounds();
-    bounds->set_left(left);
-    bounds->set_bottom(bottom);
-    bounds->set_right(right);
-    bounds->set_top(top);
-    bounds->set_id(monIdx);
-    std::printf("[NanoMSG] XPLMGetAllMonitorBoundsGlobal: #%i [%i %i %i %i]\n",
-                monIdx, left, top, right, bottom);
-  }, nullptr);
-}
 
 // Type: XPLMFlightLoop_f
 float afterFlightLoop(float  inElapsedSinceLastCall,
@@ -89,10 +55,10 @@ float afterFlightLoop(float  inElapsedSinceLastCall,
   stats->st->set_elapsed_since_last_call(inElapsedSinceLastCall);
   stats->st->set_elapsed_time_since_last_flight_loop(inElapsedTimeSinceLastFlightLoop);
   stats->st->set_flight_loop_counter(inCounter);
-  publisher->publish("stats", stats->SerializeAsString());
+  publisher->publishStats();
 
-  update_screen_info(); // TODO: remove
-  publisher->publish("info", infoMsg.SerializeAsString());
+  info->updateScreenInfo(); // TODO: remove
+  publisher->publishInfo(info);
 
   // Store how long the handler took this time, and report the next time it is run
   auto t1 = std::chrono::high_resolution_clock::now();
@@ -128,19 +94,16 @@ PLUGIN_API int XPluginStart(char *outName, char *outSig, char *outDesc) {
   startTime = std::time(nullptr);
 
   // Fill our Info message protobuf
-  infoMsg.set_msg_type(xplane::Message_Type_Info);
-  infoMsg.clear_info();
-  auto info = infoMsg.mutable_info();
-  info->set_plugin_id(pluginId);
-  info->set_start_time_unix(startTime);
-  update_screen_info();
+  info = new Info;
+  info->updateScreenInfo();
 
   // Publish Info message
   // TODO: Publish periodically
-  publisher->publish("info", infoMsg.SerializeAsString());
+  publisher->publishInfo(info);
 
   // Register flight loop callback
   // TODO: Does the called func keep a reference?
+  // TODO: Move to XPluginEnable?
   XPLMCreateFlightLoop_t cfl;
   cfl.structSize = sizeof(cfl);
   cfl.phase = xplm_FlightLoop_Phase_AfterFlightModel;
@@ -153,7 +116,7 @@ PLUGIN_API int XPluginStart(char *outName, char *outSig, char *outDesc) {
 }
 
 PLUGIN_API void XPluginStop(void) {
-  if (afterFlightLoopID != 0) {
+  if (afterFlightLoopID != nullptr) {
     XPLMDestroyFlightLoop(afterFlightLoopID);
   }
   if (!publisher->close()) {
@@ -178,5 +141,4 @@ PLUGIN_API void XPluginReceiveMessage(XPLMPluginID inFrom, int inMsg, void *inPa
   // TODO: Perhaps lookup plugin name
   publisher->publish("receive_message", m.SerializeAsString());
 }
-
 

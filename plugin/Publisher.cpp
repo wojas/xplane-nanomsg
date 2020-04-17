@@ -19,7 +19,7 @@ void Publisher::publish(const string &topic, const string &pb) {
   //std::cout << "@@@ " << pb.size() << " " << buf << std::endl;
   lastCall = "nng_send #" + topic;
   if ((lastErrorCode = nng_send(sock, (void *) buf.c_str(), buf.length(), NNG_FLAG_NONBLOCK)) != 0) {
-    stats->set_publish_error(lastErrorCode);
+    stats->setPublishError(lastErrorCode);
   }
 }
 
@@ -46,3 +46,12 @@ bool Publisher::close() {
   lastCall = "nng_close";
   return (lastErrorCode = nng_close(sock)) == 0;
 }
+
+void Publisher::publishStats() {
+  publish("stats", stats->SerializeAsString());
+}
+
+void Publisher::publishInfo(Info *info) {
+  publish("info", info->SerializeAsString());
+}
+
