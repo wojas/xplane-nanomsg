@@ -1,0 +1,6 @@
+[submodule "plugin/nng"]
+	path = plugin/nng
+	url = git@github.com:nanomsg/nng.git
+[submodule "plugin/protobuf"]
+	path = plugin/protobuf
+	url = git@github.com:protocolbuffers/protobuf.git
