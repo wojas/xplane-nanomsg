@@ -10,8 +10,7 @@
 # TODO: Figure out the actual minimum version, this one is very new
 cmake_minimum_required (VERSION 3.16.1)
 
-project(reqrep)
-
+project(xplane-nanomsg LANGUAGES CXX C)
 
 # specify the C++ standard
 set(CMAKE_CXX_STANDARD 11)
@@ -24,7 +23,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 #set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}")
 
 option(BUILD_SHARED_LIBS "Build using shared libraries" OFF)
-
 
 # https://cmake.org/cmake/help/latest/module/FindProtobuf.html
 set(Protobuf_USE_STATIC_LIBS TRUE)
@@ -47,40 +45,23 @@ set(Protobuf_LITE_LIBRARIES ${Protobuf_DIR}/lib/libprotobuf-lite.a)
 find_package(Protobuf REQUIRED)
 
 include_directories(${Protobuf_INCLUDE_DIRS})
-#include_directories(protobuf/src)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
-#protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS foo.proto)
-#protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS EXPORT_MACRO DLL_EXPORT foo.proto)
-#protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS DESCRIPTORS PROTO_DESCS foo.proto)
-#protobuf_generate_python(PROTO_PY foo.proto)
-#add_executable(bar bar.cc ${PROTO_SRCS} ${PROTO_HDRS})
-#target_link_libraries(bar ${PROTOBUF_LIBRARIES})
-
-# TODO: Protobuf demos - REMOVE
-protobuf_generate_cpp(PROTO_DEMO_SRCS PROTO_DEMO_HDRS addressbook.proto)
-add_executable(add_person add_person.cc ${PROTO_DEMO_SRCS} ${PROTO_DEMO_HDRS})
-target_link_libraries(add_person PRIVATE ${Protobuf_LIBRARIES})
-add_executable(list_people list_people.cc ${PROTO_DEMO_SRCS} ${PROTO_DEMO_HDRS})
-target_link_libraries(list_people PRIVATE ${Protobuf_LIBRARIES})
 
 protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS proto/xplane.proto)
 
 #find_package(nng CONFIG REQUIRED)
 add_subdirectory(nng)
 
-add_executable(reqrep reqrep.c)
-#add_executable(regrep regrep.c ${PROTO_SRCS} ${PROTO_HDRS})
-target_link_libraries(reqrep PRIVATE nng ${Protobuf_LIBRARIES})
-
+set(XP_SOURCES plugin.cpp ${PROTO_SRCS} ${PROTO_HDRS} Publisher.cpp Publisher.h Statistics.cpp Statistics.h)
 
 add_subdirectory(xplane_sdk)
-add_xplane_plugin(hello-world 301 hello-world.cpp ${PROTO_SRCS} ${PROTO_HDRS})
-target_link_libraries(hello-world PRIVATE nng ${Protobuf_LIBRARIES})
+add_xplane_plugin(nanomsg-plugin 301 ${XP_SOURCES})
+target_link_libraries(nanomsg-plugin PRIVATE nng ${Protobuf_LIBRARIES})
 
 # Test executable with SDK stubs
-add_executable(test-hello-world test-stub.cpp hello-world.cpp ${PROTO_SRCS} ${PROTO_HDRS})
-add_xplane_sdk_definitions(test-hello-world 301)
+add_executable(test-nanomsg-plugin test-stub.cpp ${XP_SOURCES})
+add_xplane_sdk_definitions(test-nanomsg-plugin 301)
 set(XPLANE_INCLUDES_PATH "${CMAKE_CURRENT_SOURCE_DIR}/xplane_sdk/sdk/CHeaders/" CACHE STRING PATH)
-target_include_directories(test-hello-world PUBLIC "${XPLANE_INCLUDES_PATH}/XPLM" "${XPLANE_INCLUDES_PATH}/Widgets" "${XPLANE_INCLUDES_PATH}/Wrappers")
-target_link_libraries(test-hello-world PRIVATE nng ${Protobuf_LIBRARIES})
+target_include_directories(test-nanomsg-plugin PUBLIC "${XPLANE_INCLUDES_PATH}/XPLM" "${XPLANE_INCLUDES_PATH}/Widgets" "${XPLANE_INCLUDES_PATH}/Wrappers")
+target_link_libraries(test-nanomsg-plugin PRIVATE nng ${Protobuf_LIBRARIES})
 
