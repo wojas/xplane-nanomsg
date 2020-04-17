@@ -7,6 +7,7 @@
 # file was obtained (LICENSE.txt).  A copy of the license may also be
 # found online at https://opensource.org/licenses/MIT.
 
+# TODO: Figure out the actual minimum version, this one is very new
 cmake_minimum_required (VERSION 3.16.1)
 
 project(reqrep)
@@ -75,4 +76,11 @@ target_link_libraries(reqrep PRIVATE nng ${Protobuf_LIBRARIES})
 add_subdirectory(xplane_sdk)
 add_xplane_plugin(hello-world 301 hello-world.cpp ${PROTO_SRCS} ${PROTO_HDRS})
 target_link_libraries(hello-world PRIVATE nng ${Protobuf_LIBRARIES})
+
+# Test executable with SDK stubs
+add_executable(test-hello-world test-stub.cpp hello-world.cpp ${PROTO_SRCS} ${PROTO_HDRS})
+add_xplane_sdk_definitions(test-hello-world 301)
+set(XPLANE_INCLUDES_PATH "${CMAKE_CURRENT_SOURCE_DIR}/xplane_sdk/sdk/CHeaders/" CACHE STRING PATH)
+target_include_directories(test-hello-world PUBLIC "${XPLANE_INCLUDES_PATH}/XPLM" "${XPLANE_INCLUDES_PATH}/Widgets" "${XPLANE_INCLUDES_PATH}/Wrappers")
+target_link_libraries(test-hello-world PRIVATE nng ${Protobuf_LIBRARIES})
 

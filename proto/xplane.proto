@@ -12,27 +12,31 @@ message Result {
     string error = 2;
 }
 
-enum Command {
-    UnknownCommand = 0;
-    CreateSession = 1;
-    CloseSession = 2;
-    GetPosition = 3;
-    SubscribePosition = 4;
-    SetPosition = 5;
-    GetDataRefs = 6;
-    SetDataRefs = 7;
-    SubscribeData = 8;
-    SetSubscribedData = 9;
-    CreateInstance = 10;
-    DestroyInstance = 11;
-    InstanceSetPosition = 12;
-}
-
 message SessionOptions {
+    // Seconds to keep the session alive without keepalive
+    // TODO: How to deal with pauses and suspends?
     int32 ttl_seconds = 1;
+    // For error messages and debugging
+    string client_name = 2;
 }
 
 message RPC {
+    enum Command {
+        UnknownCommand = 0;
+        CreateSession = 1;
+        CloseSession = 2;
+        GetPosition = 3;
+        SubscribePosition = 4;
+        SetPosition = 5;
+        GetDataRefs = 6;
+        SetDataRefs = 7;
+        SubscribeData = 8;
+        SetSubscribedData = 9;
+        CreateInstance = 10;
+        DestroyInstance = 11;
+        InstanceSetPosition = 12;
+    }
+
     Header header = 1;
     Result result = 2;
     Command command = 3;
@@ -56,8 +60,13 @@ message Info {
 }
 
 message Stats {
-    // Time our handler took in microseconds
-    int32 handlerTimeUsec = 1;
+    // Time our handler took in microseconds during the previous run
+    int32 handler_time_usec = 1;
+    uint32 total_publish_errors = 2;
+    int32 last_publish_error_code = 3;
+    float elapsed_since_last_call = 4; // seconds
+    float elapsed_time_since_last_flight_loop = 5; // seconds
+    int32 flight_loop_counter = 6;
 }
 
 message PluginMessage {
