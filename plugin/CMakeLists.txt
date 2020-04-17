@@ -50,18 +50,22 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS proto/xplane.proto)
 
 #find_package(nng CONFIG REQUIRED)
-add_subdirectory(nng)
+add_subdirectory(nng EXCLUDE_FROM_ALL)
+
+add_subdirectory(fmt)
+include_directories(${CMAKE_SOURCE_DIR}/fmt/include)
 
 set(XP_SOURCES Plugin.cpp ${PROTO_SRCS} ${PROTO_HDRS} Publisher.cpp Publisher.h Statistics.cpp Statistics.h Info.cpp Info.h)
+set(XP_LIBS PRIVATE nng ${Protobuf_LIBRARIES} fmt::fmt)
 
 add_subdirectory(xplane_sdk)
 add_xplane_plugin(nanomsg-plugin 301 ${XP_SOURCES})
-target_link_libraries(nanomsg-plugin PRIVATE nng ${Protobuf_LIBRARIES})
+target_link_libraries(nanomsg-plugin ${XP_LIBS})
 
 # Test executable with SDK stubs
 add_executable(test-nanomsg-plugin test-stub.cpp ${XP_SOURCES})
 add_xplane_sdk_definitions(test-nanomsg-plugin 301)
 set(XPLANE_INCLUDES_PATH "${CMAKE_CURRENT_SOURCE_DIR}/xplane_sdk/sdk/CHeaders/" CACHE STRING PATH)
 target_include_directories(test-nanomsg-plugin PUBLIC "${XPLANE_INCLUDES_PATH}/XPLM" "${XPLANE_INCLUDES_PATH}/Widgets" "${XPLANE_INCLUDES_PATH}/Wrappers")
-target_link_libraries(test-nanomsg-plugin PRIVATE nng ${Protobuf_LIBRARIES})
+target_link_libraries(test-nanomsg-plugin ${XP_LIBS})
 

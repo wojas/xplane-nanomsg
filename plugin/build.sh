@@ -33,4 +33,7 @@ if [ "$(uname)" = "Darwin" ]; then
         echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
     fi
 fi
+for p in *.xpl ; do
+    otool -L "$p"
+done
 popd

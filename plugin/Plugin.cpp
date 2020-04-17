@@ -21,8 +21,9 @@
 
 #include <string>
 #include <cstring>
-#include <cstdio>
 #include <ctime>
+
+#include <fmt/format.h>
 
 #include "xplane.pb.h"
 #include "Publisher.h"
@@ -79,19 +80,20 @@ PLUGIN_API int XPluginStart(char *outName, char *outSig, char *outDesc) {
   // TODO: Perhaps enable once we support drawing windows (allows VR)
   //XPLMEnableFeature("XPLM_USE_NATIVE_WIDGET_WINDOWS", true);
 
+  // Fill plugin globals
+  pluginId = XPLMGetMyID();
+  startTime = std::time(nullptr);
+  fmt::print(FMT_STRING("[NanoMSG] XPluginStart pluginId={}\n"), pluginId);
+
   // Fill our Stats message protobuf
   stats = new Statistics;
 
   // Open PUB socket
   publisher = new Publisher(PUB_URL, stats);
   if (!publisher->open()) {
-    std::printf("[NanoMSG] FATAL: nng pub init: %s\n", publisher->lastError().c_str());
+    fmt::print(FMT_STRING("[NanoMSG] FATAL: nng pub init: {}\n"), publisher->lastError());
     return false; // Plugin init failed
   }
-
-  // Fill plugin globals
-  pluginId = XPLMGetMyID();
-  startTime = std::time(nullptr);
 
   // Fill our Info message protobuf
   info = new Info;

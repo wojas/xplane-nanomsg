@@ -7,3 +7,6 @@
 [submodule "plugin/xplane_sdk"]
 	path = plugin/xplane_sdk
 	url = git@github.com:leecbaker/xplane_sdk.git
+[submodule "plugin/fmt"]
+	path = plugin/fmt
+	url = git@github.com:fmtlib/fmt.git
