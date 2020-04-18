@@ -23,12 +23,11 @@
 #include <cstring>
 #include <ctime>
 
-#include <fmt/format.h>
-
 #include "xplane.pb.h"
 #include "Publisher.h"
 #include "Statistics.h"
 #include "Info.h"
+#include "Utils.h"
 
 // TODO: How to support multiple X-Plane instances on the same machine?
 constexpr auto& RPC_URL = "tcp://0.0.0.0:27471";
@@ -72,9 +71,9 @@ float afterFlightLoop(float  inElapsedSinceLastCall,
 }
 
 PLUGIN_API int XPluginStart(char *outName, char *outSig, char *outDesc) {
-  std::strcpy(outName, "NanoMSG");
+  std::strcpy(outName, "nanomsg");
   std::strcpy(outSig, "nl.wojas.xplane.nanomsg");
-  std::strcpy(outDesc, "A NanoMSG + Protobuf remote interface to X-Plane");
+  std::strcpy(outDesc, "A nanomsg + protobuf remote interface to X-Plane");
 
   XPLMEnableFeature("XPLM_USE_NATIVE_PATHS", true);
   // TODO: Perhaps enable once we support drawing windows (allows VR)
@@ -83,7 +82,7 @@ PLUGIN_API int XPluginStart(char *outName, char *outSig, char *outDesc) {
   // Fill plugin globals
   pluginId = XPLMGetMyID();
   startTime = std::time(nullptr);
-  fmt::print(FMT_STRING("[NanoMSG] XPluginStart pluginId={}\n"), pluginId);
+  LOG("XPluginStart pluginId={}", pluginId);
 
   // Fill our Stats message protobuf
   stats = new Statistics;
@@ -91,7 +90,7 @@ PLUGIN_API int XPluginStart(char *outName, char *outSig, char *outDesc) {
   // Open PUB socket
   publisher = new Publisher(PUB_URL, stats);
   if (!publisher->open()) {
-    fmt::print(FMT_STRING("[NanoMSG] FATAL: nng pub init: {}\n"), publisher->lastError());
+    LOG("FATAL: nng pub init: {}", publisher->lastError());
     return false; // Plugin init failed
   }
 

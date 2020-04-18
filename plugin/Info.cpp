@@ -1,6 +1,7 @@
 #include <XPLMDisplay.h>
 #include <XPLMPlugin.h>
 #include "Info.h"
+#include "Utils.h"
 
 #include <ctime>
 #include <cstdio>
@@ -41,7 +42,7 @@ void Info::updateScreenInfo() {
     bounds->set_right(right);
     bounds->set_top(top);
     bounds->set_id(monIdx);
-    std::printf("[NanoMSG] XPLMGetAllMonitorBoundsGlobal: #%i [%i %i %i %i]\n",
+    LOG("XPLMGetAllMonitorBoundsGlobal: #{} [{} {} {} {}]",
                 monIdx, left, top, right, bottom);
   }, (void *) this);
 

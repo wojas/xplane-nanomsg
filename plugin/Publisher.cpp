@@ -4,6 +4,7 @@
 #include <utility>
 
 #include "Publisher.h"
+#include "Utils.h"
 
 Publisher::Publisher(string url, Statistics *stats) : bindURL(std::move(url)), stats(stats) {
   lastCall = "";
@@ -11,7 +12,7 @@ Publisher::Publisher(string url, Statistics *stats) : bindURL(std::move(url)), s
 
 void Publisher::publish(const string &topic, const string &pb) {
   if (pb.empty()) {
-    std::printf("[NanoMSG] WARNING: empty protobuf\n");
+    LOG("WARNING: empty protobuf");
   }
   std::string buf = topic;
   buf += '=';

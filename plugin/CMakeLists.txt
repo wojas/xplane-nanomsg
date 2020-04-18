@@ -46,7 +46,7 @@ add_subdirectory(nng EXCLUDE_FROM_ALL)
 add_subdirectory(fmt)
 include_directories(${CMAKE_SOURCE_DIR}/fmt/include)
 
-set(XP_SOURCES Plugin.cpp ${PROTO_SRCS} ${PROTO_HDRS} Publisher.cpp Publisher.h Statistics.cpp Statistics.h Info.cpp Info.h)
+set(XP_SOURCES Plugin.cpp ${PROTO_SRCS} ${PROTO_HDRS} Publisher.cpp Publisher.h Statistics.cpp Statistics.h Info.cpp Info.h Utils.h Utils.cpp)
 set(XP_LIBS PRIVATE nng ${Protobuf_LIBRARIES} fmt::fmt)
 
 add_subdirectory(xplane_sdk)

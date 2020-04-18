@@ -138,3 +138,7 @@ PLUGIN_API void XPLMScheduleFlightLoop(
     float                inInterval,
     int                  inRelativeToNow) {
 }
+
+PLUGIN_API void XPLMDebugString(const char *s) {
+  std::cout << s;
+}
