@@ -28,6 +28,8 @@
 #include "Statistics.h"
 #include "Info.h"
 #include "Utils.h"
+#include "DataRefManager.h"
+#include "Position.h"
 
 // TODO: How to support multiple X-Plane instances on the same machine?
 constexpr auto& RPC_URL = "tcp://0.0.0.0:27471";
@@ -41,7 +43,8 @@ XPLMFlightLoopID afterFlightLoopID;
 Statistics *stats;
 Info *info;
 Publisher *publisher;
-
+DataRefManager *dataRefManager;
+Position *position;
 
 // Type: XPLMFlightLoop_f
 float afterFlightLoop(float  inElapsedSinceLastCall,
@@ -60,6 +63,13 @@ float afterFlightLoop(float  inElapsedSinceLastCall,
   info->updateScreenInfo(); // TODO: remove
   publisher->publishInfo(info);
 
+  xplane::Message m;
+  m.set_msg_type(xplane::Message_Type_Position);
+  auto p = m.mutable_position();
+  position->update();
+  position->toProtobufData(p);
+  publisher->publish("position", m.SerializeAsString());
+
   // Store how long the handler took this time, and report the next time it is run
   auto t1 = std::chrono::high_resolution_clock::now();
   auto dt = t1 - t0;
@@ -67,7 +77,8 @@ float afterFlightLoop(float  inElapsedSinceLastCall,
   stats->st->set_handler_time_usec(usec.count());
 
   // TODO: Maybe too frequent?
-  return -1.0; // Call again next frame
+  //return -1.0; // Call again next frame
+  return 1.0; // Call again in one second
 }
 
 PLUGIN_API int XPluginStart(char *outName, char *outSig, char *outDesc) {
@@ -82,7 +93,7 @@ PLUGIN_API int XPluginStart(char *outName, char *outSig, char *outDesc) {
   // Fill plugin globals
   pluginId = XPLMGetMyID();
   startTime = std::time(nullptr);
-  LOG("XPluginStart pluginId={}", pluginId);
+  LOG("XPluginStart pluginId={} build={} {}", pluginId, __DATE__, __TIME__);
 
   // Fill our Stats message protobuf
   stats = new Statistics;
@@ -102,6 +113,9 @@ PLUGIN_API int XPluginStart(char *outName, char *outSig, char *outDesc) {
   // TODO: Publish periodically
   publisher->publishInfo(info);
 
+  dataRefManager = new DataRefManager;
+  position = new Position(dataRefManager);
+
   // Register flight loop callback
   // TODO: Does the called func keep a reference?
   // TODO: Move to XPluginEnable?
@@ -117,18 +131,21 @@ PLUGIN_API int XPluginStart(char *outName, char *outSig, char *outDesc) {
 }
 
 PLUGIN_API void XPluginStop(void) {
+  LOG("XPluginStop");
   if (afterFlightLoopID != nullptr) {
     XPLMDestroyFlightLoop(afterFlightLoopID);
   }
   if (!publisher->close()) {
-    //TODO: warn_nng("publisher.close: %s", publisher->lastError().c_str());
+    LOG("XPluginStop: close publisher: {}", publisher->lastError());
   }
 }
 
 PLUGIN_API void XPluginDisable(void) {
+  LOG("XPluginDisable");
 }
 
 PLUGIN_API int XPluginEnable(void) {
+  LOG("XPluginEnable");
   return true; // Required to indicate we can be enabled
 }
 

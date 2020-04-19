@@ -19,6 +19,7 @@
 #include <nng/nng.h>
 #include <nng/protocol/pubsub0/pub.h>
 #include <nng/protocol/pubsub0/sub.h>
+#include <XPLMDataAccess.h>
 
 #include "xplane.pb.h"
 
@@ -142,3 +143,85 @@ PLUGIN_API void XPLMScheduleFlightLoop(
 PLUGIN_API void XPLMDebugString(const char *s) {
   std::cout << s;
 }
+
+PLUGIN_API XPLMDataRef XPLMFindDataRef(const char *inDataRefName) {
+    return reinterpret_cast<XPLMDataRef>(42);
+};
+
+PLUGIN_API int XPLMCanWriteDataRef(XPLMDataRef inDataRef) {
+  return true;
+}
+
+PLUGIN_API XPLMDataTypeID XPLMGetDataRefTypes(XPLMDataRef inDataRef) {
+  return 63; // all of them
+}
+
+PLUGIN_API int XPLMGetDatai(XPLMDataRef inDataRef) {
+  return 42;
+}
+
+PLUGIN_API float XPLMGetDataf(XPLMDataRef inDataRef) {
+  return 42.0;
+}
+
+PLUGIN_API double XPLMGetDatad(XPLMDataRef inDataRef) {
+  return 42.0;
+}
+
+PLUGIN_API int XPLMGetDatavf(
+    XPLMDataRef          inDataRef,
+    float *              outValues,    /* Can be NULL */
+    int                  inOffset,
+    int                  inMax) {
+  if (inOffset > 0 || inMax < 1) {
+    return 0;
+  }
+  outValues[0] = 42.0;
+  return 1;
+}
+
+PLUGIN_API int XPLMGetDatavi(
+    XPLMDataRef          inDataRef,
+    int *                outValues,    /* Can be NULL */
+    int                  inOffset,
+    int                  inMax) {
+  if (inOffset > 0 || inMax < 1) {
+    return 0;
+  }
+  outValues[0] = 42;
+  return 1;
+}
+
+PLUGIN_API int XPLMGetDatab(
+    XPLMDataRef          inDataRef,
+    void *               outValues,    /* Can be NULL */
+    int                  inOffset,
+    int                  inMax) {
+  if (inOffset > 0 || inMax < 1) {
+    return 0;
+  }
+  char * buf = static_cast<char *>(outValues);
+  buf[0] = 42;
+  return 1;
+}
+
+PLUGIN_API void XPLMSetDatai(XPLMDataRef inDataRef, int inValue) {}
+PLUGIN_API void XPLMSetDataf(XPLMDataRef inDataRef, float inValue) {}
+PLUGIN_API void XPLMSetDatad(XPLMDataRef inDataRef, double inValue) {}
+
+PLUGIN_API void XPLMSetDatavf(
+    XPLMDataRef          inDataRef,
+    float *              inValues,
+    int                  inoffset,
+    int                  inCount) {
+}
+
+PLUGIN_API void XPLMWorldToLocal(
+    double               inLatitude,
+    double               inLongitude,
+    double               inAltitude,
+    double *             outX,
+    double *             outY,
+    double *             outZ) {
+}
+

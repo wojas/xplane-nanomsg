@@ -76,6 +76,73 @@ message PluginMessage {
     // TODO: Perhaps add name of sending plugin
 }
 
+message DataRef {
+    // See XPLMDataTypeID: https://developer.x-plane.com/sdk/XPLMDataAccess/
+    enum Type {
+        Unknown = 0;
+        Int = 1;
+        Float = 2;
+        Double = 4;
+        FloatArray = 8;
+        IntArray = 16;
+        Data = 32;
+    }
+
+    string name = 1;
+    // TODO: How do we want to deal with multiple possible values
+    Type ref_type = 2;
+    uint32 all_types = 22; // bitmask of all supported types, optional
+
+    int32 int_val = 3;
+    float float_val = 4;
+    double double_val = 5;
+    bytes data_val = 6;
+    repeated int32 int_array = 7;
+    repeated float float_array = 8;
+
+    bool can_write = 9;
+
+    // For arrays
+    int32 offset = 10;
+    int32 count = 11;
+}
+
+message Position {
+    // TODO: double like in XPLMWorldToLocal
+    // TODO: Notify when the local coordinates have changed?
+    double x = 1;
+    double y = 2;
+    double z = 3;
+    float pitch = 4;
+    float heading = 5;
+    float roll = 6;
+    double lat = 7;
+    double lon = 8;
+    float y_agl = 9;
+    float vx = 10;
+    float vy = 11;
+    float vz = 12;
+    float gs = 13;
+    float ias = 14;
+    float ias2 = 15;
+    float tas = 16;
+    float vh_ind = 17;
+    float vh_ind_fpm = 18;
+    float vh_ind_fpm2 = 19;
+    float p = 20;
+    float q = 21;
+    float r = 22;
+
+    double elev = 31;
+    double alt = 32;
+    float true_pitch = 33;
+    float true_heading = 34;
+    float true_roll = 35;
+    float mag_heading = 36;
+    float lat_ref = 37;
+    float lon_ref = 38;
+}
+
 // Message is used for pubsub broadcasts
 message Message {
     enum Type {
@@ -83,6 +150,8 @@ message Message {
         Stats = 10;
         Info = 11;
         PluginMessage = 12;
+        RPC = 13;
+        Position = 14;
     }
 
     Type msg_type = 1;
@@ -96,4 +165,5 @@ message Message {
     PluginMessage plugin_message = 12;
     // If enabled, all requests and responses will be broadcast to the 'rpc' channel for debugging.
     RPC rpc = 13;
+    Position position = 14;
 }
