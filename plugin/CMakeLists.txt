@@ -60,3 +60,7 @@ set(XPLANE_INCLUDES_PATH "${CMAKE_CURRENT_SOURCE_DIR}/xplane_sdk/sdk/CHeaders/" 
 target_include_directories(test-nanomsg-plugin PUBLIC "${XPLANE_INCLUDES_PATH}/XPLM" "${XPLANE_INCLUDES_PATH}/Widgets" "${XPLANE_INCLUDES_PATH}/Wrappers")
 target_link_libraries(test-nanomsg-plugin ${XP_LIBS})
 
+# Tool to dump all published messages to stdout as readable text
+add_executable(dump-sub dump-sub.cpp ${PROTO_SRCS} ${PROTO_HDRS})
+target_link_libraries(dump-sub ${XP_LIBS})
+
