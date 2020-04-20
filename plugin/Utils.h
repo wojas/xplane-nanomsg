@@ -14,6 +14,6 @@ void logString(const std::string& s);
 
 // Same as LOG, but only in debug mode
 // TODO: Make conditional on debug mode
-#define DEBUG(fmtStr, ...) logString(fmt::format(FMT_STRING(fmtStr), ## __VA_ARGS__))
+#define DEBUGLOG(fmtStr, ...) logString("DEBUG: " + fmt::format(FMT_STRING(fmtStr), ## __VA_ARGS__))
 
 #endif //XPLANE_NANOMSG_UTILS_H

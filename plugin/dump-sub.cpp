@@ -16,6 +16,7 @@
 
 void nng_fatal(const char *func, int rv) {
   fprintf(stderr, "%s: %s\n", func, nng_strerror(rv));
+  exit(1);
 }
 
 nng_socket sock;

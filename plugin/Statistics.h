@@ -3,8 +3,6 @@
 
 #include <string>
 
-using namespace std;
-
 #include <xplane.pb.h>
 
 class Statistics {
@@ -13,8 +11,9 @@ public:
   xplane::Stats *st;
 
   Statistics();
-  void setPublishError(int lastErrorCode);
-  string SerializeAsString();
+  void setPublishError(int lastErrorCode) const;
+  void setCommandError(int lastErrorCode) const;
+  std::string SerializeAsString();
 };
 
 

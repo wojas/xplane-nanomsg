@@ -4,7 +4,7 @@ cmake_minimum_required (VERSION 3.16.1)
 project(xplane-nanomsg LANGUAGES CXX C)
 
 # specify the C++ standard
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 # control where the static and shared libraries are built so that on windows
@@ -46,7 +46,7 @@ add_subdirectory(nng EXCLUDE_FROM_ALL)
 add_subdirectory(fmt)
 include_directories(${CMAKE_SOURCE_DIR}/fmt/include)
 
-set(XP_SOURCES Plugin.cpp ${PROTO_SRCS} ${PROTO_HDRS} Publisher.cpp Publisher.h Statistics.cpp Statistics.h Info.cpp Info.h Utils.h Utils.cpp DataRefManager.cpp DataRefManager.h Position.cpp Position.h)
+set(XP_SOURCES Plugin.cpp ${PROTO_SRCS} ${PROTO_HDRS} Publisher.cpp Publisher.h Statistics.cpp Statistics.h Info.cpp Info.h Utils.h Utils.cpp DataRefManager.cpp DataRefManager.h Position.cpp Position.h Commands.cpp Commands.h)
 set(XP_LIBS PRIVATE nng ${Protobuf_LIBRARIES} fmt::fmt)
 
 add_subdirectory(xplane_sdk)
@@ -63,4 +63,6 @@ target_link_libraries(test-nanomsg-plugin ${XP_LIBS})
 # Tool to dump all published messages to stdout as readable text
 add_executable(dump-sub dump-sub.cpp ${PROTO_SRCS} ${PROTO_HDRS})
 target_link_libraries(dump-sub ${XP_LIBS})
+add_executable(set-position set-position.cpp ${PROTO_SRCS} ${PROTO_HDRS})
+target_link_libraries(set-position ${XP_LIBS})
 

@@ -20,6 +20,8 @@
 #include <nng/protocol/pubsub0/pub.h>
 #include <nng/protocol/pubsub0/sub.h>
 #include <XPLMDataAccess.h>
+#include <fmt/core.h>
+#include <nng/protocol/reqrep0/req.h>
 
 #include "xplane.pb.h"
 
@@ -34,8 +36,10 @@ PLUGIN_API void XPluginReceiveMessage(XPLMPluginID inFrom, int inMsg, void *inPa
 
 void nng_fatal(const char *func, int rv) {
   fprintf(stderr, "%s: %s\n", func, nng_strerror(rv));
+  exit(1);
 }
 
+nng_socket subsock;
 nng_socket sock;
 int rv;
 
@@ -43,7 +47,7 @@ void receive() {
   for (;;) {
     char *buf = nullptr;
     size_t sz;
-    if ((rv = nng_recv(sock, &buf, &sz, NNG_FLAG_ALLOC|NNG_FLAG_NONBLOCK)) != 0) {
+    if ((rv = nng_recv(subsock, &buf, &sz, NNG_FLAG_ALLOC|NNG_FLAG_NONBLOCK)) != 0) {
       if (rv == NNG_EAGAIN) {
         return; // No messages
       }
@@ -75,15 +79,15 @@ int main() {
   XPluginEnable();
 
   // Connect SUB
-  if ((rv = nng_sub0_open(&sock)) != 0) {
+  if ((rv = nng_sub0_open(&subsock)) != 0) {
     nng_fatal("nng_sub0_open", rv);
   }
   // subscribe to everything (empty means all topics)
-  if ((rv = nng_setopt(sock, NNG_OPT_SUB_SUBSCRIBE, "", 0)) != 0) {
+  if ((rv = nng_setopt(subsock, NNG_OPT_SUB_SUBSCRIBE, "", 0)) != 0) {
     nng_fatal("nng_setopt", rv);
   }
   constexpr auto& url = "tcp://127.0.0.1:27472";
-  if ((rv = nng_dial(sock, url, nullptr, 0)) != 0) {
+  if ((rv = nng_dial(subsock, url, nullptr, 0)) != 0) {
     nng_fatal("nng_dial", rv);
   }
   receive(); // TODO: Will miss the first Info message
@@ -98,11 +102,57 @@ int main() {
     receive();
   }
 
+  // Send command
+  if ((rv = nng_req0_open(&sock)) != 0) {
+    nng_fatal("nng_req0_open", rv);
+  }
+  if ((rv = nng_setopt_ms(sock, NNG_OPT_SENDTIMEO, 1000)) != 0) {
+    nng_fatal("nng_setopt NNG_OPT_SENDTIMEO", rv);
+  }
+  if ((rv = nng_setopt_ms(sock, NNG_OPT_RECVTIMEO, 1000)) != 0) {
+    nng_fatal("nng_setopt NNG_OPT_RECVTIMEO", rv);
+  }
+  constexpr auto& reqUrl = "tcp://127.0.0.1:27471";
+  if ((rv = nng_dial(sock, reqUrl, nullptr, 0)) != 0) {
+    nng_fatal("nng_dial", rv);
+  }
+  auto req = std::make_unique<xplane::Request>();
+  req->set_command(xplane::Request_Command_SetPosition);
+  auto pos = req->mutable_position();
+  pos->set_lat(1);
+  pos->set_lon(2);
+  pos->set_elev(3);
+  auto pb = req->SerializeAsString();
+  req->PrintDebugString();
+  fmt::print("Sending request\n");
+  if ((rv = nng_send(sock, (void *) pb.c_str(), pb.length(), 0)) != 0) {
+    nng_fatal("nng_send", rv);
+  }
+  fmt::print("Request sent\n");
+
+  // Process request
+  callback(0.050, 0.010, 123, nullptr);
+  sleep(1);
+  callback(0.050, 0.010, 123, nullptr);
+
+  // Read response
+  fmt::print("Reading response\n");
+  size_t sz;
+  char * buf = nullptr;
+  if ((rv = nng_recv(sock, &buf, &sz, NNG_FLAG_ALLOC)) != 0) {
+    nng_fatal("nng_recv", rv);
+  }
+  fmt::print("Read response\n");
+  auto rep = std::make_unique<xplane::Response>();
+  rep->ParseFromArray(buf, sz);
+  rep->PrintDebugString();
+
   XPluginDisable();
   XPluginStop();
   receive();
   std::printf("Done.\n");
 }
+
 
 PLUGIN_API void XPLMGetScreenBoundsGlobal(int *outLeft, int *outTop, int *outRight, int *outBottom) {
   // TODO: Did I get these right?

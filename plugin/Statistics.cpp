@@ -5,11 +5,16 @@ Statistics::Statistics() {
   st = msg.mutable_stats();
 }
 
-string Statistics::SerializeAsString() {
+std::string Statistics::SerializeAsString() {
   return msg.SerializeAsString();
 }
 
-void Statistics::setPublishError(int lastErrorCode) {
+void Statistics::setPublishError(int lastErrorCode) const {
   st->set_last_publish_error_code(lastErrorCode);
   st->set_total_publish_errors(st->total_publish_errors() + 1);
+}
+
+void Statistics::setCommandError(int lastErrorCode) const {
+  st->set_last_command_error_code(lastErrorCode);
+  st->set_total_command_errors(st->total_command_errors() + 1);
 }

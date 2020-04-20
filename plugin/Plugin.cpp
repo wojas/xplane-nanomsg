@@ -30,6 +30,7 @@
 #include "Utils.h"
 #include "DataRefManager.h"
 #include "Position.h"
+#include "Commands.h"
 
 // TODO: How to support multiple X-Plane instances on the same machine?
 constexpr auto& RPC_URL = "tcp://0.0.0.0:27471";
@@ -45,6 +46,7 @@ Info *info;
 Publisher *publisher;
 DataRefManager *dataRefManager;
 Position *position;
+Commands *commands; // RPC commands, not X-Plane commands
 
 // Type: XPLMFlightLoop_f
 float afterFlightLoop(float  inElapsedSinceLastCall,
@@ -53,6 +55,9 @@ float afterFlightLoop(float  inElapsedSinceLastCall,
                       void * inRefcon) {
 
   auto t0 = std::chrono::high_resolution_clock::now();
+
+  // Handle RPC commands
+  commands->handle();
 
   // Publish stats
   stats->st->set_elapsed_since_last_call(inElapsedSinceLastCall);
@@ -116,6 +121,12 @@ PLUGIN_API int XPluginStart(char *outName, char *outSig, char *outDesc) {
   dataRefManager = new DataRefManager;
   position = new Position(dataRefManager);
 
+  commands = new Commands(RPC_URL, stats, position);
+  if (!commands->open()) {
+    LOG("FATAL: nng rep init: {}", commands->lastError());
+    return false; // Plugin init failed
+  }
+
   // Register flight loop callback
   // TODO: Does the called func keep a reference?
   // TODO: Move to XPluginEnable?
@@ -138,6 +149,10 @@ PLUGIN_API void XPluginStop(void) {
   if (!publisher->close()) {
     LOG("XPluginStop: close publisher: {}", publisher->lastError());
   }
+  if (!commands->close()) {
+    LOG("XPluginStop: close commands: {}",commands->lastError());
+  }
+  // TODO: delete all the global instances
 }
 
 PLUGIN_API void XPluginDisable(void) {

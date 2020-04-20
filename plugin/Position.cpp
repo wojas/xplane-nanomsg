@@ -23,7 +23,6 @@ Position::Position(DataRefManager *mgr) : mgr(mgr) {
   refs.lat_ref = mgr->getInfo("sim/flightmodel/position/lat_ref");  // R
   refs.lon_ref = mgr->getInfo("sim/flightmodel/position/lon_ref"); // R
 
-  // TODO: Use the non-writable 'true_' versions of these?
   refs.pitch   = mgr->getInfo("sim/flightmodel/position/theta"); // W
   refs.roll    = mgr->getInfo("sim/flightmodel/position/phi");   // W
   refs.heading = mgr->getInfo("sim/flightmodel/position/psi");   // W

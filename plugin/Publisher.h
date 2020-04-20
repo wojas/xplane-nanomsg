@@ -7,26 +7,24 @@
 #include "Statistics.h"
 #include "Info.h"
 
-using namespace std;
-
 class Publisher {
 protected:
   nng_socket sock{};
 
 public:
-  string bindURL;
+  std::string bindURL;
   int lastErrorCode = 0;
-  string lastCall;
+  std::string lastCall;
   Statistics *stats;
 
-  explicit Publisher(string url, Statistics *stats);
+  explicit Publisher(std::string url, Statistics *stats);
 
   void publish(const std::string& topic, const std::string& pb);
   void publishStats();
   void publishInfo(Info *info);
   bool open();
   bool close();
-  string lastError() const;
+  [[nodiscard]] std::string lastError() const;
 };
 
 #endif //XPLANE_NANOMSG_PUBLISHER_H
