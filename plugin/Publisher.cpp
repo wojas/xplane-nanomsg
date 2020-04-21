@@ -6,9 +6,8 @@
 #include "Publisher.h"
 #include "Utils.h"
 
-Publisher::Publisher(string url, Statistics *stats) : bindURL(std::move(url)), stats(stats) {
-  lastCall = "";
-}
+Publisher::Publisher(std::string url, std::shared_ptr<Statistics> & stats)
+    : bindURL(std::move(url)), stats(stats), lastCall("") {}
 
 void Publisher::publish(const string &topic, const string &pb) {
   if (pb.empty()) {
@@ -52,7 +51,12 @@ void Publisher::publishStats() {
   publish("stats", stats->SerializeAsString());
 }
 
-void Publisher::publishInfo(Info *info) {
+void Publisher::publishInfo(std::unique_ptr<Info> & info) {
   publish("info", info->SerializeAsString());
+}
+
+Publisher::~Publisher() {
+  DEBUGLOG("~Publisher");
+  nng_close(sock); // ignore NNG_EBADF if already closed
 }
 

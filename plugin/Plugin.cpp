@@ -22,6 +22,8 @@
 #include <string>
 #include <cstring>
 #include <ctime>
+#include <memory>
+#include <utility>
 
 #include "xplane.pb.h"
 
@@ -39,13 +41,18 @@ XPLMPluginID pluginId;
 time_t startTime;
 XPLMFlightLoopID afterFlightLoopID;
 
-// TODO: delete in XPluginStop. Perhaps wrap in a single instance?
-Statistics *stats;
-Info *info;
-Publisher *publisher;
-DataRefManager *dataRefManager;
-Position *position;
-Commands *commands; // RPC commands, not X-Plane commands
+// Global instances are grouped together into a struct for easy resource cleanup
+struct Globals {
+  std::shared_ptr<Statistics> stats;
+  std::shared_ptr<DataRefManager> dataRefManager;
+  std::shared_ptr<Position> position;
+  std::unique_ptr<Info> info;
+  std::unique_ptr<Publisher> publisher;
+  std::unique_ptr<Commands> commands; // RPC commands, not X-Plane commands
+};
+// Initialized in XPluginStart and deleted in XPluginStop
+std::unique_ptr<Globals> g(nullptr);
+
 
 // Type: XPLMFlightLoop_f
 float afterFlightLoop(float  inElapsedSinceLastCall,
@@ -56,29 +63,29 @@ float afterFlightLoop(float  inElapsedSinceLastCall,
   auto t0 = std::chrono::high_resolution_clock::now();
 
   // Handle RPC commands
-  commands->handle();
+  g->commands->handle();
 
   // Publish stats
-  stats->st->set_elapsed_since_last_call(inElapsedSinceLastCall);
-  stats->st->set_elapsed_time_since_last_flight_loop(inElapsedTimeSinceLastFlightLoop);
-  stats->st->set_flight_loop_counter(inCounter);
-  publisher->publishStats();
+  g->stats->st->set_elapsed_since_last_call(inElapsedSinceLastCall);
+  g->stats->st->set_elapsed_time_since_last_flight_loop(inElapsedTimeSinceLastFlightLoop);
+  g->stats->st->set_flight_loop_counter(inCounter);
+  g->publisher->publishStats();
 
-  info->updateScreenInfo(); // TODO: remove
-  publisher->publishInfo(info);
+  g->info->updateScreenInfo(); // TODO: remove
+  g->publisher->publishInfo(g->info);
 
   xplane::Message m;
   m.set_msg_type(xplane::Message_Type_Position);
   auto p = m.mutable_position();
-  position->update();
-  position->toProtobufData(p);
-  publisher->publish("position", m.SerializeAsString());
+  g->position->update();
+  g->position->toProtobufData(p);
+  g->publisher->publish("position", m.SerializeAsString());
 
   // Store how long the handler took this time, and report the next time it is run
   auto t1 = std::chrono::high_resolution_clock::now();
   auto dt = t1 - t0;
   auto usec = std::chrono::duration_cast<std::chrono::microseconds>(dt);
-  stats->st->set_handler_time_usec(usec.count());
+  g->stats->st->set_handler_time_usec(usec.count());
 
   // TODO: Maybe too frequent?
   //return -1.0; // Call again next frame
@@ -101,31 +108,41 @@ PLUGIN_API int XPluginStart(char *outName, char *outSig, char *outDesc) {
       pluginId, config.rpcUrl(), config.pubUrl(), __DATE__, __TIME__);
 
   // Fill our Stats message protobuf
-  stats = new Statistics;
+  auto stats = std::make_shared<Statistics>();
 
   // Open PUB socket
-  publisher = new Publisher(config.pubUrl(), stats);
+  auto publisher = std::make_unique<Publisher>(config.pubUrl(), stats);
   if (!publisher->open()) {
     LOG("FATAL: nng pub init: {}", publisher->lastError());
     return false; // Plugin init failed
   }
 
   // Fill our Info message protobuf
-  info = new Info;
+  auto info = std::make_unique<Info>();
   info->updateScreenInfo();
 
   // Publish Info message
   // TODO: Publish periodically
   publisher->publishInfo(info);
 
-  dataRefManager = new DataRefManager;
-  position = new Position(dataRefManager);
+  auto dataRefManager = std::make_shared<DataRefManager>();
+  auto position = std::make_shared<Position>(dataRefManager);
 
-  commands = new Commands(config.rpcUrl(), stats, position);
+  auto commands = std::make_unique<Commands>(config.rpcUrl(), stats, position);
   if (!commands->open()) {
     LOG("FATAL: nng rep init: {}", commands->lastError());
     return false; // Plugin init failed
   }
+
+  g = std::make_unique<Globals>();
+  *g = {
+      std::move(stats),
+      std::move(dataRefManager),
+      std::move(position),
+      std::move(info),
+      std::move(publisher),
+      std::move(commands)
+  };
 
   // Register flight loop callback
   // TODO: Does the called func keep a reference?
@@ -146,13 +163,13 @@ PLUGIN_API void XPluginStop(void) {
   if (afterFlightLoopID != nullptr) {
     XPLMDestroyFlightLoop(afterFlightLoopID);
   }
-  if (!publisher->close()) {
-    LOG("XPluginStop: close publisher: {}", publisher->lastError());
+  if (!g->publisher->close()) {
+    LOG("XPluginStop: close publisher: {}", g->publisher->lastError());
   }
-  if (!commands->close()) {
-    LOG("XPluginStop: close commands: {}",commands->lastError());
+  if (!g->commands->close()) {
+    LOG("XPluginStop: close commands: {}", g->commands->lastError());
   }
-  // TODO: delete all the global instances
+  g = nullptr; // magic resource cleanup
 }
 
 PLUGIN_API void XPluginDisable(void) {
@@ -172,6 +189,6 @@ PLUGIN_API void XPluginReceiveMessage(XPLMPluginID inFrom, int inMsg, void *inPa
   p->set_msg_id(inMsg);
   p->set_param((unsigned long long) inParam); // The pointer value
   // TODO: Perhaps lookup plugin name
-  publisher->publish("receive_message", m.SerializeAsString());
+  g->publisher->publish("receive_message", m.SerializeAsString());
 }
 

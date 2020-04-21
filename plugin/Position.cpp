@@ -5,7 +5,7 @@
 
 #define PI 3.14159265358979323846
 
-Position::Position(DataRefManager *mgr) : mgr(mgr) {
+Position::Position(std::shared_ptr<DataRefManager> & mgr) : mgr(mgr) {
   // See https://developer.x-plane.com/article/movingtheplane/
   // The ones marked with 'W' are writable according to DataRefs.txt,
   // and the ones marked with 'R' are read only.
@@ -21,7 +21,7 @@ Position::Position(DataRefManager *mgr) : mgr(mgr) {
   refs.y_agl   = mgr->getInfo("sim/flightmodel/position/y_agl");     // R
 
   refs.lat_ref = mgr->getInfo("sim/flightmodel/position/lat_ref");  // R
-  refs.lon_ref = mgr->getInfo("sim/flightmodel/position/lon_ref"); // R
+  refs.lon_ref = mgr->getInfo("sim/flightmodel/position/lon_ref");  // R
 
   refs.pitch   = mgr->getInfo("sim/flightmodel/position/theta"); // W
   refs.roll    = mgr->getInfo("sim/flightmodel/position/phi");   // W
@@ -31,7 +31,7 @@ Position::Position(DataRefManager *mgr) : mgr(mgr) {
   refs.true_roll    = mgr->getInfo("sim/flightmodel/position/true_phi");   // R
   refs.true_heading = mgr->getInfo("sim/flightmodel/position/true_psi");   // R
 
-  refs.mag_heading  = mgr->getInfo("sim/flightmodel/position/mag_psi");   // R
+  refs.mag_heading  = mgr->getInfo("sim/flightmodel/position/mag_psi");    // R
 
   refs.q       = mgr->getInfo("sim/flightmodel/position/q");     // W
 }
@@ -69,6 +69,8 @@ void Position::setPositionFeet(double newLat, double newLon, double newAlt) {
 // Moves the airplane around
 // See https://developer.x-plane.com/article/movingtheplane/ for the magic
 void Position::setPositionMetric(double newLat, double newLon, double newElev) {
+  // TODO: Use https://developer.x-plane.com/sdk/XPLMPlanes/#XPLMPlaceUserAtLocation instead
+
   lat = newLat;
   lon = newLon;
   elev = newElev;

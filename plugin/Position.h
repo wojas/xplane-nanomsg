@@ -22,11 +22,11 @@ struct PosRefs {
 // See https://developer.x-plane.com/article/movingtheplane/
 class Position {
 private:
-  DataRefManager *mgr;
+  std::shared_ptr<DataRefManager> mgr;
   PosRefs refs;
 
 public:
-  explicit Position(DataRefManager *mgr);
+  explicit Position(std::shared_ptr<DataRefManager> & mgr);
 
   void update();
   void setPositionFeet(double newLat, double newLon, double newAlt);

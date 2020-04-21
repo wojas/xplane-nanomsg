@@ -1,12 +1,18 @@
 #include <nng/nng.h>
 #include <nng/protocol/reqrep0/rep.h>
 
+#include <utility>
+
 #include "Commands.h"
 #include "Utils.h"
 
 
-Commands::Commands(std::string url, Statistics *stats, Position *position)
-    : bindURL(std::move(url)), stats(stats), position(position) {
+Commands::Commands(std::string url,
+                   std::shared_ptr<Statistics> & stats,
+                   std::shared_ptr<Position> & position)
+    : bindURL(std::move(url)),
+      stats(stats),
+      position(position) {
   lastCall = "";
 }
 
@@ -127,6 +133,11 @@ void Commands::dispatch(const std::unique_ptr<xplane::Request> & req,
     default:
       rep->set_error("Command not implemented");
   }
+}
+
+Commands::~Commands() {
+  DEBUGLOG("~Commands");
+  nng_close(sock); // ignore NNG_EBADF if already closed
 }
 
 

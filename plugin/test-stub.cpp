@@ -102,8 +102,8 @@ int main() {
   XPluginReceiveMessage(0, XPLM_MSG_PLANE_LOADED, 0);
   XPluginReceiveMessage(0, XPLM_MSG_AIRPORT_LOADED, (void *)42);
 
-  std::printf("Running flight loop 100 times..\n");
-  for (int i = 0; i < 10; ++i) {
+  std::printf("Running flight loop a few times..\n");
+  for (int i = 0; i < 3; ++i) {
     callback(0.050, 0.010, i, nullptr);
     usleep(10000); // 10 msec
     receive();
@@ -154,7 +154,9 @@ int main() {
   rep->PrintDebugString();
 
   XPluginDisable();
+  fmt::print("Calling XPluginStop\n");
   XPluginStop();
+  fmt::print("Calling XPluginStop done\n");
   receive();
   std::printf("Done.\n");
 }
