@@ -16,7 +16,7 @@ public:
   bool writable;
   XPLMDataTypeID types; // bitmap
 
-  [[nodiscard]] xplane::DataRef * asProtobufData() const;
+  [[nodiscard]] std::unique_ptr<xplane::DataRef> asProtobufData() const;
   [[nodiscard]] int getInt() const;
   [[nodiscard]] float getFloat() const;
   [[nodiscard]] double getDouble() const;

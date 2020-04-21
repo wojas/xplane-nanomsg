@@ -27,8 +27,8 @@ S_DataRefInfo DataRefManager::get(const std::string &name) {
       .writable = static_cast<bool>(XPLMCanWriteDataRef(ref)),
       .types = t,
   });
-  map[name] = std::move(dri);
-  return map[name];
+  map[name] = dri;
+  return dri;
 }
 
 // Based on biggest ones found in DataRefs.txt
@@ -39,8 +39,8 @@ static int intBuf[maxInts];
 const int maxBytes = 65536;
 static char bytesBuf[maxBytes];
 
-xplane::DataRef * DataRefInfo::asProtobufData() const {
-  auto d = new xplane::DataRef;
+std::unique_ptr<xplane::DataRef> DataRefInfo::asProtobufData() const {
+  auto d = std::make_unique<xplane::DataRef>();
   XPLMDataTypeID t = this->types;
   // If a dataref supports multiple types, we return all variants
   d->set_all_types(t);
