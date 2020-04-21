@@ -11,29 +11,29 @@ Position::Position(std::shared_ptr<DataRefManager> & mgr) : mgr(mgr) {
   // and the ones marked with 'R' are read only.
   // This is not the whole picture: some non-writable ones are
   // written in some circumstances, but may be overwritten by the SIM.
-  refs.x       = mgr->getInfo("sim/flightmodel/position/local_x"); // W
-  refs.y       = mgr->getInfo("sim/flightmodel/position/local_y"); // W
-  refs.z       = mgr->getInfo("sim/flightmodel/position/local_z"); // W
+  refs.x       = mgr->get("sim/flightmodel/position/local_x"); // W
+  refs.y       = mgr->get("sim/flightmodel/position/local_y"); // W
+  refs.z       = mgr->get("sim/flightmodel/position/local_z"); // W
 
-  refs.lat     = mgr->getInfo("sim/flightmodel/position/latitude");  // R
-  refs.lon     = mgr->getInfo("sim/flightmodel/position/longitude"); // R
-  refs.elev    = mgr->getInfo("sim/flightmodel/position/elevation"); // R
-  refs.y_agl   = mgr->getInfo("sim/flightmodel/position/y_agl");     // R
+  refs.lat     = mgr->get("sim/flightmodel/position/latitude");  // R
+  refs.lon     = mgr->get("sim/flightmodel/position/longitude"); // R
+  refs.elev    = mgr->get("sim/flightmodel/position/elevation"); // R
+  refs.y_agl   = mgr->get("sim/flightmodel/position/y_agl");     // R
 
-  refs.lat_ref = mgr->getInfo("sim/flightmodel/position/lat_ref");  // R
-  refs.lon_ref = mgr->getInfo("sim/flightmodel/position/lon_ref");  // R
+  refs.lat_ref = mgr->get("sim/flightmodel/position/lat_ref");  // R
+  refs.lon_ref = mgr->get("sim/flightmodel/position/lon_ref");  // R
 
-  refs.pitch   = mgr->getInfo("sim/flightmodel/position/theta"); // W
-  refs.roll    = mgr->getInfo("sim/flightmodel/position/phi");   // W
-  refs.heading = mgr->getInfo("sim/flightmodel/position/psi");   // W
+  refs.pitch   = mgr->get("sim/flightmodel/position/theta"); // W
+  refs.roll    = mgr->get("sim/flightmodel/position/phi");   // W
+  refs.heading = mgr->get("sim/flightmodel/position/psi");   // W
 
-  refs.true_pitch   = mgr->getInfo("sim/flightmodel/position/true_theta"); // R
-  refs.true_roll    = mgr->getInfo("sim/flightmodel/position/true_phi");   // R
-  refs.true_heading = mgr->getInfo("sim/flightmodel/position/true_psi");   // R
+  refs.true_pitch   = mgr->get("sim/flightmodel/position/true_theta"); // R
+  refs.true_roll    = mgr->get("sim/flightmodel/position/true_phi");   // R
+  refs.true_heading = mgr->get("sim/flightmodel/position/true_psi");   // R
 
-  refs.mag_heading  = mgr->getInfo("sim/flightmodel/position/mag_psi");    // R
+  refs.mag_heading  = mgr->get("sim/flightmodel/position/mag_psi");    // R
 
-  refs.q       = mgr->getInfo("sim/flightmodel/position/q");     // W
+  refs.q       = mgr->get("sim/flightmodel/position/q");     // W
 }
 
 void Position::update() {

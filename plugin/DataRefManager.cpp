@@ -9,7 +9,10 @@
 DataRefManager::DataRefManager() {
 }
 
-DataRefInfo * DataRefManager::getInfo(const std::string &name) {
+// TODO: Figure out how to return one of these instead:
+//  std::unique_ptr<DataRefInfo> &                 (how to return equivalent of nullptr?)
+//  std::optional<std::unique_ptr<DataRefInfo> &>  (how to return the actual value?)
+S_DataRefInfo DataRefManager::get(const std::string &name) {
   if (map.count(name) > 0) {
     return map[name];
   }
@@ -18,14 +21,14 @@ DataRefInfo * DataRefManager::getInfo(const std::string &name) {
     return nullptr;
   }
   XPLMDataTypeID t = XPLMGetDataRefTypes(ref);
-  auto dri = new DataRefInfo{
+  auto dri = std::make_shared<DataRefInfo>(DataRefInfo{
       .name = name,
       .ref = ref,
       .writable = static_cast<bool>(XPLMCanWriteDataRef(ref)),
       .types = t,
-  };
-  map[name] = dri;
-  return dri;
+  });
+  map[name] = std::move(dri);
+  return map[name];
 }
 
 // Based on biggest ones found in DataRefs.txt

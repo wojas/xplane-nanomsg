@@ -8,14 +8,14 @@
 #define FEET_PER_METER 3.28084
 
 struct PosRefs {
-  DataRefInfo *x, *y, *z;
-  DataRefInfo *lat, *lon;
-  DataRefInfo *lat_ref, *lon_ref;
-  DataRefInfo *elev, *y_agl;  // alt is calculated from elv
-  DataRefInfo *heading, *pitch, *roll;
-  DataRefInfo *q;  // q is not exposed
-  DataRefInfo *true_heading, *true_pitch, *true_roll;  // TODO: experimental
-  DataRefInfo *mag_heading;
+  S_DataRefInfo x, y, z;
+  S_DataRefInfo lat, lon;
+  S_DataRefInfo lat_ref, lon_ref;
+  S_DataRefInfo elev, y_agl;  // alt is calculated from elv
+  S_DataRefInfo heading, pitch, roll;
+  S_DataRefInfo q;  // q is not exposed
+  S_DataRefInfo true_heading, true_pitch, true_roll;
+  S_DataRefInfo mag_heading;
 };
 
 // The aircraft position

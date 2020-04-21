@@ -16,20 +16,22 @@ public:
   bool writable;
   XPLMDataTypeID types; // bitmap
 
-  xplane::DataRef * asProtobufData() const;
-  int getInt() const;
-  float getFloat() const;
-  double getDouble() const;
-  std::string getString() const;
+  [[nodiscard]] xplane::DataRef * asProtobufData() const;
+  [[nodiscard]] int getInt() const;
+  [[nodiscard]] float getFloat() const;
+  [[nodiscard]] double getDouble() const;
+  [[nodiscard]] std::string getString() const;
 };
+
+using S_DataRefInfo = std::shared_ptr<DataRefInfo>;
 
 class DataRefManager {
 protected:
-  std::unordered_map<std::string, DataRefInfo*> map = {};
+  std::unordered_map<std::string, S_DataRefInfo> map = {};
 
 public:
   DataRefManager();
-  DataRefInfo * getInfo(const std::string& name);
+  S_DataRefInfo get(const std::string& name);
 };
 
 #endif //XPLANE_NANOMSG_DATAREFMANAGER_H
