@@ -10,8 +10,8 @@
 class Commands {
 protected:
   nng_socket sock{};
-  std::shared_ptr<Position> position;
-  std::shared_ptr<Statistics> stats;
+  S_Position position;
+  S_Statistics stats;
 
   std::optional<std::string> recv();
   void send(const std::string &pb);
@@ -22,8 +22,8 @@ public:
   std::string lastCall;
 
   explicit Commands(std::string url,
-                    std::shared_ptr<Statistics> & stats,
-                    std::shared_ptr<Position> & position);
+                    S_Statistics & stats,
+                    S_Position & position);
   virtual ~Commands();
 
   bool open();

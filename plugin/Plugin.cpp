@@ -134,15 +134,14 @@ PLUGIN_API int XPluginStart(char *outName, char *outSig, char *outDesc) {
     return false; // Plugin init failed
   }
 
-  g = std::make_unique<Globals>();
-  *g = {
+  g = std::make_unique<Globals>(Globals{
       std::move(stats),
       std::move(dataRefManager),
       std::move(position),
       std::move(info),
       std::move(publisher),
       std::move(commands)
-  };
+  });
 
   // Register flight loop callback
   // TODO: Does the called func keep a reference?

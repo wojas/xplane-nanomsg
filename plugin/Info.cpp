@@ -4,7 +4,6 @@
 #include "Utils.h"
 
 #include <ctime>
-#include <cstdio>
 
 Info::Info() {
   msg.set_msg_type(xplane::Message_Type_Info);
@@ -14,7 +13,7 @@ Info::Info() {
   info->set_start_time_unix(startTime);
 }
 
-string Info::SerializeAsString() {
+std::string Info::SerializeAsString() {
   return msg.SerializeAsString();
 }
 

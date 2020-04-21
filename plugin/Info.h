@@ -3,8 +3,6 @@
 
 #include <string>
 
-using namespace std;
-
 #include <xplane.pb.h>
 
 class Info {
@@ -13,7 +11,7 @@ public:
   xplane::Info *info;
 
   Info();
-  string SerializeAsString();
+  std::string SerializeAsString();
   void updateScreenInfo();
 
 };

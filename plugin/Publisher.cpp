@@ -6,10 +6,10 @@
 #include "Publisher.h"
 #include "Utils.h"
 
-Publisher::Publisher(std::string url, std::shared_ptr<Statistics> & stats)
+Publisher::Publisher(std::string url, S_Statistics & stats)
     : bindURL(std::move(url)), stats(stats), lastCall("") {}
 
-void Publisher::publish(const string &topic, const string &pb) {
+void Publisher::publish(const std::string &topic, const std::string &pb) {
   if (pb.empty()) {
     LOG("WARNING: empty protobuf");
   }
@@ -38,8 +38,8 @@ bool Publisher::open() {
   return lastErrorCode >= 0;
 }
 
-string Publisher::lastError() const {
- return lastCall + ": " + string(nng_strerror(lastErrorCode));
+std::string Publisher::lastError() const {
+ return lastCall + ": " + std::string(nng_strerror(lastErrorCode));
 }
 
 bool Publisher::close() {

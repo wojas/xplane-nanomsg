@@ -16,5 +16,6 @@ public:
   std::string SerializeAsString();
 };
 
+using S_Statistics = std::shared_ptr<Statistics>;
 
 #endif //XPLANE_NANOMSG_STATISTICS_H

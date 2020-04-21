@@ -22,11 +22,11 @@ struct PosRefs {
 // See https://developer.x-plane.com/article/movingtheplane/
 class Position {
 private:
-  std::shared_ptr<DataRefManager> mgr;
+  S_DataRefManager mgr;
   PosRefs refs;
 
 public:
-  explicit Position(std::shared_ptr<DataRefManager> & mgr);
+  explicit Position(S_DataRefManager & mgr);
 
   void update();
   void setPositionFeet(double newLat, double newLon, double newAlt);
@@ -45,5 +45,6 @@ public:
   float mag_heading; // degrees
 };
 
+using S_Position = std::shared_ptr<Position>;
 
 #endif //XPLANE_NANOMSG_POSITION_H

@@ -7,9 +7,7 @@
 #include "Utils.h"
 
 
-Commands::Commands(std::string url,
-                   std::shared_ptr<Statistics> & stats,
-                   std::shared_ptr<Position> & position)
+Commands::Commands(std::string url, S_Statistics & stats, S_Position & position)
     : bindURL(std::move(url)),
       stats(stats),
       position(position) {

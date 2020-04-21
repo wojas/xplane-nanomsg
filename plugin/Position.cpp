@@ -5,7 +5,7 @@
 
 #define PI 3.14159265358979323846
 
-Position::Position(std::shared_ptr<DataRefManager> & mgr) : mgr(mgr) {
+Position::Position(S_DataRefManager & mgr) : mgr(mgr) {
   // See https://developer.x-plane.com/article/movingtheplane/
   // The ones marked with 'W' are writable according to DataRefs.txt,
   // and the ones marked with 'R' are read only.

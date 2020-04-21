@@ -15,14 +15,14 @@ public:
   std::string bindURL;
   int lastErrorCode = 0;
   std::string lastCall;
-  std::shared_ptr<Statistics> stats;
+  S_Statistics stats;
 
-  explicit Publisher(std::string url, std::shared_ptr<Statistics> & stats);
+  explicit Publisher(std::string url, S_Statistics & stats);
   virtual ~Publisher();
 
   void publish(const std::string& topic, const std::string& pb);
   void publishStats();
-  void publishInfo(unique_ptr<Info> &info);
+  void publishInfo(std::unique_ptr<Info> &info);
   bool open();
   bool close();
   [[nodiscard]] std::string lastError() const;

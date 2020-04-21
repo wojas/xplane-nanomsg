@@ -34,4 +34,6 @@ public:
   S_DataRefInfo get(const std::string& name);
 };
 
+using S_DataRefManager = std::shared_ptr<DataRefManager>;
+
 #endif //XPLANE_NANOMSG_DATAREFMANAGER_H
