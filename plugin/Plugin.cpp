@@ -24,6 +24,8 @@
 #include <ctime>
 
 #include "xplane.pb.h"
+
+#include "Config.h"
 #include "Publisher.h"
 #include "Statistics.h"
 #include "Info.h"
@@ -32,15 +34,12 @@
 #include "Position.h"
 #include "Commands.h"
 
-// TODO: How to support multiple X-Plane instances on the same machine?
-constexpr auto& RPC_URL = "tcp://0.0.0.0:27471";
-constexpr auto& PUB_URL = "tcp://0.0.0.0:27472";
-
 // These globals are set during init
 XPLMPluginID pluginId;
 time_t startTime;
 XPLMFlightLoopID afterFlightLoopID;
 
+// TODO: delete in XPluginStop. Perhaps wrap in a single instance?
 Statistics *stats;
 Info *info;
 Publisher *publisher;
@@ -98,13 +97,14 @@ PLUGIN_API int XPluginStart(char *outName, char *outSig, char *outDesc) {
   // Fill plugin globals
   pluginId = XPLMGetMyID();
   startTime = std::time(nullptr);
-  LOG("XPluginStart pluginId={} build={} {}", pluginId, __DATE__, __TIME__);
+  LOG("XPluginStart pluginId={} rpcUrl={} pubUrl={} build={} {}",
+      pluginId, config.rpcUrl(), config.pubUrl(), __DATE__, __TIME__);
 
   // Fill our Stats message protobuf
   stats = new Statistics;
 
   // Open PUB socket
-  publisher = new Publisher(PUB_URL, stats);
+  publisher = new Publisher(config.pubUrl(), stats);
   if (!publisher->open()) {
     LOG("FATAL: nng pub init: {}", publisher->lastError());
     return false; // Plugin init failed
@@ -121,7 +121,7 @@ PLUGIN_API int XPluginStart(char *outName, char *outSig, char *outDesc) {
   dataRefManager = new DataRefManager;
   position = new Position(dataRefManager);
 
-  commands = new Commands(RPC_URL, stats, position);
+  commands = new Commands(config.rpcUrl(), stats, position);
   if (!commands->open()) {
     LOG("FATAL: nng rep init: {}", commands->lastError());
     return false; // Plugin init failed

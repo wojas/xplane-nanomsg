@@ -11,17 +11,20 @@
 #include <string>
 #include <sstream>
 
+#include <fmt/core.h>
+
 #include <XPLMDefs.h>
 #include <XPLMDisplay.h>
 #include <XPLMProcessing.h>
 #include <XPLMPlugin.h>
+#include <XPLMDataAccess.h>
 
 #include <nng/nng.h>
 #include <nng/protocol/pubsub0/pub.h>
 #include <nng/protocol/pubsub0/sub.h>
-#include <XPLMDataAccess.h>
-#include <fmt/core.h>
 #include <nng/protocol/reqrep0/req.h>
+
+#include "Config.h"
 
 #include "xplane.pb.h"
 
@@ -74,6 +77,11 @@ void receive() {
 int main() {
   std::printf("Starting tests..\n");
 
+  // Override ports to not use the same as the actual plugin
+  // FIXME: use setters
+  config.setRpcUrl("tcp://127.0.0.1:31716");
+  config.setPubUrl("tcp://127.0.0.1:31717");
+
   char name[256], sig[256], desc[256];
   XPluginStart(name, sig, desc);
   XPluginEnable();
@@ -86,8 +94,7 @@ int main() {
   if ((rv = nng_setopt(subsock, NNG_OPT_SUB_SUBSCRIBE, "", 0)) != 0) {
     nng_fatal("nng_setopt", rv);
   }
-  constexpr auto& url = "tcp://127.0.0.1:27472";
-  if ((rv = nng_dial(subsock, url, nullptr, 0)) != 0) {
+  if ((rv = nng_dial(subsock, config.pubClientUrl().c_str(), nullptr, 0)) != 0) {
     nng_fatal("nng_dial", rv);
   }
   receive(); // TODO: Will miss the first Info message
@@ -112,8 +119,7 @@ int main() {
   if ((rv = nng_setopt_ms(sock, NNG_OPT_RECVTIMEO, 1000)) != 0) {
     nng_fatal("nng_setopt NNG_OPT_RECVTIMEO", rv);
   }
-  constexpr auto& reqUrl = "tcp://127.0.0.1:27471";
-  if ((rv = nng_dial(sock, reqUrl, nullptr, 0)) != 0) {
+  if ((rv = nng_dial(sock, config.rpcClientUrl().c_str(), nullptr, 0)) != 0) {
     nng_fatal("nng_dial", rv);
   }
   auto req = std::make_unique<xplane::Request>();
