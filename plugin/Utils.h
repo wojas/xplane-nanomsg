@@ -3,9 +3,13 @@
 
 #include <fmt/format.h>
 
+// Log a debug string to X-Plane's Log.txt
 void logString(const std::string& s);
+
+// Replace a substring in given string and return a new string.
 std::string replace(const std::string& in, const std::string& from, const std::string& to);
 
+// Prefix used for log messages in Log.txt
 #define LOG_PREFIX "[nanomsg] "
 
 // LOG is a wrapper around fmt for logging with compile-time format string checks.

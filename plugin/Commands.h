@@ -18,22 +18,36 @@ protected:
   std::optional<std::string> recv();
   void send(const std::string &pb);
 
-public:
-  std::string bindURL;
-  int lastErrorCode = 0;
+  // Name for the last nanomsg call for debugging
   std::string lastCall;
+
+public:
+  // nanomsg bind socket url, like "tcp://127.0.0.1:12345"
+  std::string bindURL;
+
+  // Last nanomsg error code
+  int lastErrorCode = 0;
 
   explicit Commands(std::string url, S_Statistics &stats,
                     S_Position &position, S_SessionManager &sm);
   virtual ~Commands();
 
+  // Actually start listening on bindURL
   bool open();
-  bool close(); // FIXME: call in destructor
+
+  // Stop listening and close the socket. The destructor will also
+  // close the socket if needed, but explicitly calling this
+  // allows you to check for errors.
+  bool close();
+
+  // Last nanomsg error as a descriptive string
   [[nodiscard]] std::string lastError() const;
 
-  // Handle any received commands
+  // Handle any commands received through nanomsg.
   void handle();
 
+  // Dispatches incoming commands to their appropriate handlers and
+  // updates the response message to be sent to the client.
   void dispatch(const std::unique_ptr<xplane::Request> &req,
                 std::unique_ptr<xplane::Response> &rep);
 };

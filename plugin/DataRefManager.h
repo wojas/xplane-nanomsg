@@ -11,7 +11,7 @@
 
 class DataRefInfo {
 public:
-  std::string name; // TODO: use const char*?
+  std::string name;
   XPLMDataRef ref;
   bool writable;
   XPLMDataTypeID types; // bitmap
