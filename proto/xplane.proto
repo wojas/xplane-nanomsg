@@ -63,6 +63,7 @@ message Request {
     Header header = 1;
     Command command = 3;
 
+    SessionOptions session_options = 4;
     PositionOptions position = 5;
 }
 

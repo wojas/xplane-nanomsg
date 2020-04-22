@@ -55,7 +55,9 @@ set(XP_SOURCES Plugin.cpp
         DataRefManager.cpp DataRefManager.h
         Position.cpp Position.h
         Commands.cpp Commands.h
-        Config.cpp Config.h)
+        Config.cpp Config.h
+        Session.cpp Session.h
+        SessionManager.cpp SessionManager.h)
 set(XP_LIBS PRIVATE nng ${Protobuf_LIBRARIES} fmt::fmt)
 
 # The X-Plane plugin for the current architecture

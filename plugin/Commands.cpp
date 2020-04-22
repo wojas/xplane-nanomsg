@@ -7,10 +7,11 @@
 #include "Utils.h"
 
 
-Commands::Commands(std::string url, S_Statistics & stats, S_Position & position)
+Commands::Commands(std::string url, S_Statistics &stats, S_Position &position, S_SessionManager &sm)
     : bindURL(std::move(url)),
       stats(stats),
-      position(position) {
+      position(position),
+      sessionManager(sm) {
   lastCall = "";
 }
 
@@ -99,7 +100,35 @@ void Commands::handle() {
 
 void Commands::dispatch(const std::unique_ptr<xplane::Request> & req,
                         std::unique_ptr<xplane::Response> & rep) {
-  switch (req->command()) {
+
+  auto cmd = req->command();
+  std::string sessionId = req->header().session_id();
+  auto session = sessionManager->get(sessionId);
+  if (!session && ((cmd != xplane::Request_Command_CreateSession) &&
+                   (cmd != xplane::Request_Command_SetPosition))) { // TODO: remove exception
+    if (sessionId.empty()) {
+      rep->set_error("No .header.session_id set");
+    } else {
+      rep->set_error(fmt::format(
+          "Unknown sessionId: .header.session_id='{}'", sessionId));
+    }
+    return;
+  }
+
+  switch (cmd) {
+    case xplane::Request_Command_CreateSession:
+      if (sessionId.length() < 20) {
+        rep->set_error("A sessionId must be random, readable and at "
+                       "least 20 chars long (try a UUID)");
+        return;
+      }
+      {
+        auto opt = req->session_options();
+        sessionManager->create(sessionId, opt);
+      }
+      rep->set_success(true);
+      break;
+
     case xplane::Request_Command_SetPosition:
       if (!req->has_position()) {
         rep->set_error("SetPosition requires a .position");

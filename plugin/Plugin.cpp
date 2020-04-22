@@ -46,6 +46,7 @@ struct Globals {
   std::shared_ptr<Statistics> stats;
   std::shared_ptr<DataRefManager> dataRefManager;
   std::shared_ptr<Position> position;
+  std::shared_ptr<SessionManager> sessionManager;
   std::unique_ptr<Info> info;
   std::unique_ptr<Publisher> publisher;
   std::unique_ptr<Commands> commands; // RPC commands, not X-Plane commands
@@ -128,7 +129,8 @@ PLUGIN_API int XPluginStart(char *outName, char *outSig, char *outDesc) {
   auto dataRefManager = std::make_shared<DataRefManager>();
   auto position = std::make_shared<Position>(dataRefManager);
 
-  auto commands = std::make_unique<Commands>(config.rpcUrl(), stats, position);
+  auto sessionManager = std::make_shared<SessionManager>();
+  auto commands = std::make_unique<Commands>(config.rpcUrl(), stats, position, sessionManager);
   if (!commands->open()) {
     LOG("FATAL: nng rep init: {}", commands->lastError());
     return false; // Plugin init failed
@@ -138,6 +140,7 @@ PLUGIN_API int XPluginStart(char *outName, char *outSig, char *outDesc) {
       std::move(stats),
       std::move(dataRefManager),
       std::move(position),
+      std::move(sessionManager),
       std::move(info),
       std::move(publisher),
       std::move(commands)

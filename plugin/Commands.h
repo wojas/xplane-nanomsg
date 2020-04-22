@@ -6,12 +6,14 @@
 #include <nng/nng.h>
 #include "Statistics.h"
 #include "Position.h"
+#include "SessionManager.h"
 
 class Commands {
 protected:
   nng_socket sock{};
   S_Position position;
   S_Statistics stats;
+  S_SessionManager sessionManager;
 
   std::optional<std::string> recv();
   void send(const std::string &pb);
@@ -21,9 +23,8 @@ public:
   int lastErrorCode = 0;
   std::string lastCall;
 
-  explicit Commands(std::string url,
-                    S_Statistics & stats,
-                    S_Position & position);
+  explicit Commands(std::string url, S_Statistics &stats,
+                    S_Position &position, S_SessionManager &sm);
   virtual ~Commands();
 
   bool open();
