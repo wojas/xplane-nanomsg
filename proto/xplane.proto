@@ -12,7 +12,8 @@ message Header {
     // Session IDs SHOULD NOT be reused between client runs.
     string session_id = 1;
     // Optional message ID that the client can use to keep track of
-    // requests and their responses.
+    // requests and their responses. Any subscriptions will use the
+    // msg_id of the command that started the subscription.
     uint64 msg_id = 2;
 }
 
@@ -20,6 +21,7 @@ message Header {
 message SessionOptions {
     // Seconds to keep the session alive without keepalive
     // TODO: How to deal with pauses and suspends?
+    //       Perhaps add last inElapsedSinceLastCall when checking
     int32 ttl_seconds = 1;
     // For error messages and debugging
     string client_name = 2;
@@ -176,6 +178,120 @@ message Position {
     float lat_ref = 37;
     float lon_ref = 38;
 }
+
+message Coord {
+    // Positive x means east
+    double x = 1;
+    // Positive y means up, 0 is sea level at the origin
+    double y = 2;
+    // Positive z means south
+    double z = 3;
+}
+
+message GlobalCoord {
+    // Latitude in degrees
+    double lat = 1;
+    // Longitude in degrees
+    double lon = 2;
+    // Elevation in meters
+    double elev = 3;
+    // Height above ground level in meters (read-only)
+    double y_agl = 4;
+}
+
+message Attitude {
+    // phi (degrees)
+    float roll = 1;
+    // theta (degrees)
+    float pitch = 2;
+    // psi or yaw (degrees)
+    float heading = 3;
+}
+
+message Instruments {
+    // Ground speed in m/s
+    // sim/flightmodel/position/groundspeed
+    float gs = 1;
+    // Indicated Air Speed in kias
+    // sim/flightmodel/position/indicated_airspeed
+    float ias = 2;
+    // Indicated Air Speed in kias for second instrument
+    // sim/flightmodel/position/indicated_airspeed2
+    float ias2 = 3;
+    // True Air Speed in kias
+    // sim/flightmodel/position/true_airspeed
+    float tas = 4;
+    // Vertical velocity in m/s
+    // sim/flightmodel/position/vh_ind
+    float vh_ind = 5;
+    // Vertical velocity in ft/min
+    // sim/flightmodel/position/vh_ind_fpm
+    float vh_ind_fpm = 6;
+    // Vertical velocity in ft/min for second instrument
+    // sim/flightmodel/position/vh_ind_fpm2
+    float vh_ind_fpm2 = 7;
+    // Magnetic heading
+    // sim/flightmodel/position/mag_psi
+    float mag_heading = 8;
+    // The pitch relative to the flown path (angle of attack)
+    // sim/flightmodel/position/alpha
+    float alpha = 9;
+    // The heading relative to the flown path (yaw)
+    // sim/flightmodel/position/beta
+    float beta = 10;
+    // The pitch the aircraft actually flies (vpath+alpha=theta)
+    // This tells you the angle of the flight path, like the descend angle for a landing.
+    // sim/flightmodel/position/vpath
+    float vpath = 11;
+    // The heading the aircraft actually flies (hpath+beta=psi)
+    // For navigation purposes.
+    // sim/flightmodel/position/hpath
+    float hpath = 12;
+}
+
+message Position2 {
+    // The location in local coordinates in (meters from 'reference' point, see below)
+    // sim/flightmodel/position/local_x (and y and z)
+    Coord pos = 1;
+    // sim/flightmodel/position/local_vx (and y and z)
+    Coord speed = 2;
+    // sim/flightmodel/position/local_ax (and y and z)
+    Coord accel = 3;
+
+    // The global world coordinates (latitude and longitude degrees)
+    // sim/flightmodel/position/latitude (and longitude and elevation)
+    GlobalCoord glob = 4;
+    // Global coordinates of the local (0, 0, 0) point
+    // These appear to always be set to the nearest whole lat-lon degrees
+    // sim/flightmodel/position/lat_ref (and lon_ref)
+    GlobalCoord reference = 5;
+
+    // The attitude (pitch, roll and heading degrees) relative to the local coordinates
+    // These can deviate up to 1/2 degree from the true_attitude
+    // sim/flightmodel/position/theta (and phi and psi)
+    Attitude attitude = 6;
+    // True attitude (difference up to 1/2 degree, read-only)
+    // sim/flightmodel/position/true_theta (and phi and psi)
+    Attitude true_attitude = 7;
+    // Angular rate of change of the attitudes
+    // sim/flightmodel/position/P (and Q and R)
+    Attitude attitude_speed = 8;
+    // Angular acceleration of the attitude changes (read-only)
+    // sim/flightmodel/position/P_dot (and Q and R)
+    Attitude attitude_accel = 9;
+    // Angular momentum of the aircraft in NM
+    // sim/flightmodel/position/M (and N and L)
+    // TODO: check axis mapping, maybe incorrect
+    Attitude angular_momentum = 10;
+
+    // Derived instrument values for the position (read-only, except for failure overrides)
+    Instruments instruments = 11;
+
+    // Quaternion for the rotation of the aircraft when the flight model is active
+    // sim/flightmodel/position/q (array of 4 floats)
+    repeated float q = 12;
+}
+
 
 // Message is used for pubsub broadcasts
 message Message {
