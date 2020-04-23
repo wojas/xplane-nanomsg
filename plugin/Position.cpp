@@ -2,6 +2,7 @@
 #include <XPLMGraphics.h>
 #include "Position.h"
 #include <cmath>
+#include <XPLMPlanes.h>
 
 #define PI 3.14159265358979323846
 
@@ -14,6 +15,14 @@ Position::Position(S_DataRefManager & mgr) : mgr(mgr) {
   refs.x       = mgr->get("sim/flightmodel/position/local_x"); // W
   refs.y       = mgr->get("sim/flightmodel/position/local_y"); // W
   refs.z       = mgr->get("sim/flightmodel/position/local_z"); // W
+
+  refs.vx      = mgr->get("sim/flightmodel/position/local_vx"); // W
+  refs.vy      = mgr->get("sim/flightmodel/position/local_vy"); // W
+  refs.vz      = mgr->get("sim/flightmodel/position/local_vz"); // W
+
+  refs.ax      = mgr->get("sim/flightmodel/position/local_ax"); // W
+  refs.ay      = mgr->get("sim/flightmodel/position/local_ay"); // W
+  refs.az      = mgr->get("sim/flightmodel/position/local_az"); // W
 
   refs.lat     = mgr->get("sim/flightmodel/position/latitude");  // R
   refs.lon     = mgr->get("sim/flightmodel/position/longitude"); // R
@@ -31,7 +40,19 @@ Position::Position(S_DataRefManager & mgr) : mgr(mgr) {
   refs.true_roll    = mgr->get("sim/flightmodel/position/true_phi");   // R
   refs.true_heading = mgr->get("sim/flightmodel/position/true_psi");   // R
 
-  refs.mag_heading  = mgr->get("sim/flightmodel/position/mag_psi");    // R
+  refs.gs      = mgr->get("sim/flightmodel/position/groundspeed");
+  refs.ias     = mgr->get("sim/flightmodel/position/indicated_airspeed");
+  refs.ias2    = mgr->get("sim/flightmodel/position/indicated_airspeed2");
+  refs.tas     = mgr->get("sim/flightmodel/position/true_airspeed");
+  refs.vh_ind  = mgr->get("sim/flightmodel/position/vh_ind");
+  refs.vh_ind_fpm  = mgr->get("sim/flightmodel/position/vh_ind_fpm");
+  refs.vh_ind_fpm2 = mgr->get("sim/flightmodel/position/vh_ind_fpm2");
+  refs.mag_heading = mgr->get("sim/flightmodel/position/mag_psi");    // R
+  refs.alpha   = mgr->get("sim/flightmodel/position/alpha");
+  refs.beta    = mgr->get("sim/flightmodel/position/beta");
+  refs.vpath   = mgr->get("sim/flightmodel/position/vpath");
+  refs.hpath   = mgr->get("sim/flightmodel/position/hpath");
+  refs.mag_variation = mgr->get("sim/flightmodel/position/magnetic_variation");    // R
 
   refs.q       = mgr->get("sim/flightmodel/position/q");     // W
 }
@@ -41,6 +62,14 @@ void Position::update() {
   y = refs.y->getDouble();
   z = refs.z->getDouble();
 
+  vx = refs.vx->getFloat();
+  vy = refs.vy->getFloat();
+  vz = refs.vz->getFloat();
+
+  ax = refs.ax->getFloat();
+  ay = refs.ay->getFloat();
+  az = refs.az->getFloat();
+
   lat = refs.lat->getDouble();
   lon = refs.lon->getDouble();
   elev = refs.elev->getDouble();
@@ -48,7 +77,6 @@ void Position::update() {
   lat_ref = refs.lat_ref->getFloat();
   lon_ref = refs.lon_ref->getFloat();
 
-  alt = elev * FEET_PER_METER;
   y_agl = refs.y_agl->getFloat();
 
   heading = refs.heading->getFloat();
@@ -59,22 +87,42 @@ void Position::update() {
   true_pitch = refs.true_pitch->getFloat();
   true_roll = refs.true_roll->getFloat();
 
+  gs = refs.gs->getFloat();
+  ias = refs.ias->getFloat();
+  ias2 = refs.ias2->getFloat();
+  tas = refs.tas->getFloat();
+  vh_ind = refs.vh_ind->getFloat();
+  vh_ind_fpm = refs.vh_ind_fpm->getFloat();
+  vh_ind_fpm2 = refs.vh_ind_fpm2->getFloat();
   mag_heading = refs.mag_heading->getFloat();
+  alpha = refs.alpha->getFloat();
+  beta = refs.beta->getFloat();
+  vpath = refs.vpath->getFloat();
+  hpath = refs.hpath->getFloat();
+  mag_variation = refs.mag_variation->getFloat();
 }
 
 void Position::setPositionFeet(double newLat, double newLon, double newAlt) {
+  // TODO: REMOVE THIS ONE
   setPositionMetric(newLat, newLon, newAlt / FEET_PER_METER);
 }
 
 // Moves the airplane around
-// See https://developer.x-plane.com/article/movingtheplane/ for the magic
 void Position::setPositionMetric(double newLat, double newLon, double newElev) {
   // TODO: Use https://developer.x-plane.com/sdk/XPLMPlanes/#XPLMPlaceUserAtLocation instead
+  // TODO: allow passing new heading and gs
+  // This call can take a long time if scenery needs to be loaded!
+  XPLMPlaceUserAtLocation(newLat, newLon, float(newElev), heading, gs);
 
   lat = newLat;
   lon = newLon;
   elev = newElev;
-  alt = newElev * FEET_PER_METER;
+
+  /*
+  // Old method described in https://developer.x-plane.com/article/movingtheplane/
+  // The newer X-Plane versions (XPLM 300+) have a XPLMPlaceUserAtLocation() call
+  // for this that does it better (scenery load screen, engine running, etc)
+
   XPLMWorldToLocal(lat, lon, elev, &x, &y, &z);
   // TODO: demo code sets floats, but DataRefs.txt says these are doubles
   XPLMSetDatad(refs.x->ref, x);
@@ -111,30 +159,70 @@ void Position::setPositionMetric(double newLat, double newLon, double newElev) {
   q[2] =  cos(psi) * sin(theta) * cos(phi) + sin(psi) * cos(theta) * sin(phi);
   q[3] = -cos(psi) * sin(theta) * sin(phi) + sin(psi) * cos(theta) * cos(phi);
   XPLMSetDatavf(refs.q->ref, q, 0, 4);
+  */
 }
 
 void Position::toProtobufData(xplane::Position *p) const {
-  p->set_x(x);
-  p->set_y(y);
-  p->set_z(z);
-
-  p->set_lat(lat);
-  p->set_lon(lon);
-
-  p->set_lat_ref(lat_ref);
-  p->set_lon_ref(lon_ref);
-
-  p->set_elev(elev);
-  p->set_alt(alt);
-  p->set_y_agl(y_agl);
-
-  p->set_pitch(pitch);
-  p->set_roll(roll);
-  p->set_heading(heading);
-
-  p->set_true_pitch(true_pitch);
-  p->set_true_roll(true_roll);
-  p->set_true_heading(true_heading);
-
-  p->set_mag_heading(mag_heading);
+  {
+    auto m = p->mutable_pos();
+    m->set_x(x);
+    m->set_y(y);
+    m->set_z(z);
+  }
+  {
+    auto m = p->mutable_speed();
+    m->set_x(vx);
+    m->set_y(vy);
+    m->set_z(vz);
+  }
+  {
+    auto m = p->mutable_accel();
+    m->set_x(ax);
+    m->set_y(ay);
+    m->set_z(az);
+  }
+  {
+    auto m = p->mutable_glob();
+    m->set_lat(lat);
+    m->set_lon(lon);
+    m->set_elev(elev);
+    m->set_y_agl(y_agl);
+  }
+  {
+    auto m = p->mutable_reference();
+    m->set_lat(lat_ref);
+    m->set_lon(lon_ref);
+  }
+  {
+    auto m = p->mutable_attitude();
+    m->set_pitch(pitch);
+    m->set_roll(roll);
+    m->set_heading(heading);
+  }
+  {
+    auto m = p->mutable_true_attitude();
+    m->set_pitch(true_pitch);
+    m->set_roll(true_roll);
+    m->set_heading(true_heading);
+  }
+  // TODO: attitude_speed
+  // TODO: attitude_accel
+  // TODO: angular_momentum
+  {
+    auto m = p->mutable_instruments();
+    m->set_gs(gs);
+    m->set_ias(ias);
+    m->set_ias2(ias2);
+    m->set_tas(tas);
+    m->set_vh_ind(vh_ind);
+    m->set_vh_ind_fpm(vh_ind_fpm);
+    m->set_vh_ind_fpm2(vh_ind_fpm2);
+    m->set_mag_heading(mag_heading);
+    m->set_alpha(alpha);
+    m->set_beta(beta);
+    m->set_vpath(vpath);
+    m->set_hpath(hpath);
+    m->set_mag_variation(mag_variation);
+  }
+  // TODO: q[4]
 }

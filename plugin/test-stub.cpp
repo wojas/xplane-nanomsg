@@ -283,3 +283,11 @@ PLUGIN_API void XPLMWorldToLocal(
     double *             outZ) {
 }
 
+PLUGIN_API void       XPLMPlaceUserAtLocation(
+    double               latitudeDegrees,
+    double               longitudeDegrees,
+    float                elevationMetersMSL,
+    float                headingDegreesTrue,
+    float                speedMetersPerSecond) {
+}
+

@@ -146,42 +146,6 @@ message DataRef {
     int32 count = 11;
 }
 
-message Position {
-    // TODO: double like in XPLMWorldToLocal
-    // TODO: Notify when the local coordinates have changed?
-    double x = 1;
-    double y = 2;
-    double z = 3;
-    float pitch = 4;
-    float heading = 5;
-    float roll = 6;
-    double lat = 7;
-    double lon = 8;
-    float y_agl = 9;
-    float vx = 10;
-    float vy = 11;
-    float vz = 12;
-    float gs = 13;
-    float ias = 14;
-    float ias2 = 15;
-    float tas = 16;
-    float vh_ind = 17;
-    float vh_ind_fpm = 18;
-    float vh_ind_fpm2 = 19;
-    float p = 20;
-    float q = 21;
-    float r = 22;
-
-    double elev = 31;
-    double alt = 32;
-    float true_pitch = 33;
-    float true_heading = 34;
-    float true_roll = 35;
-    float mag_heading = 36;
-    float lat_ref = 37;
-    float lon_ref = 38;
-}
-
 message Coord {
     // Positive x means east
     double x = 1;
@@ -212,6 +176,7 @@ message Attitude {
 }
 
 message Instruments {
+    // TODO: Perhaps append the units to the names
     // Ground speed in m/s
     // sim/flightmodel/position/groundspeed
     float gs = 1;
@@ -221,7 +186,7 @@ message Instruments {
     // Indicated Air Speed in kias for second instrument
     // sim/flightmodel/position/indicated_airspeed2
     float ias2 = 3;
-    // True Air Speed in kias
+    // True Air Speed in m/s
     // sim/flightmodel/position/true_airspeed
     float tas = 4;
     // Vertical velocity in m/s
@@ -250,9 +215,12 @@ message Instruments {
     // For navigation purposes.
     // sim/flightmodel/position/hpath
     float hpath = 12;
+    // Magnetic variation in degrees
+    // sim/flightmodel/position/magnetic_variation
+    float mag_variation = 13;
 }
 
-message Position2 {
+message Position {
     // The location in local coordinates in (meters from 'reference' point, see below)
     // sim/flightmodel/position/local_x (and y and z)
     Coord pos = 1;
