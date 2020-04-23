@@ -5,20 +5,23 @@
 #include <memory>
 
 #include "DataRefManager.h"
+#include "Utils.h"
 
 DataRefManager::DataRefManager() {
 }
 
-// TODO: Figure out how to return one of these instead:
-//  std::unique_ptr<DataRefInfo> &                 (how to return equivalent of nullptr?)
-//  std::optional<std::unique_ptr<DataRefInfo> &>  (how to return the actual value?)
 S_DataRefInfo DataRefManager::get(const std::string &name) {
   if (map.count(name) > 0) {
     return map[name];
   }
   XPLMDataRef ref = XPLMFindDataRef(name.c_str());
   if (ref == nullptr) {
-    return nullptr;
+    LOG("Invalid dataref: {}", name);
+    auto dri = std::make_shared<DataRefInfo>(DataRefInfo{
+        .name = name,
+        .valid = false,
+    });
+    return dri;
   }
   XPLMDataTypeID t = XPLMGetDataRefTypes(ref);
   auto dri = std::make_shared<DataRefInfo>(DataRefInfo{
@@ -26,6 +29,7 @@ S_DataRefInfo DataRefManager::get(const std::string &name) {
       .ref = ref,
       .writable = static_cast<bool>(XPLMCanWriteDataRef(ref)),
       .types = t,
+      .valid = true,
   });
   map[name] = dri;
   return dri;
@@ -72,28 +76,28 @@ std::unique_ptr<xplane::DataRef> DataRefInfo::asProtobufData() const {
 }
 
 int DataRefInfo::getInt() const {
-  if (types & xplmType_Int) {
+  if (valid && types & xplmType_Int) {
     return XPLMGetDatai(ref);
   }
   return 0;
 }
 
 float DataRefInfo::getFloat() const {
-  if (types & xplmType_Float) {
+  if (valid && types & xplmType_Float) {
     return XPLMGetDataf(ref);
   }
   return 0;
 }
 
 double DataRefInfo::getDouble() const {
-  if (types & xplmType_Double) {
+  if (valid && types & xplmType_Double) {
     return XPLMGetDatad(ref);
   }
   return 0;
 }
 
 std::string DataRefInfo::getString() const {
-  if (types & xplmType_Data) {
+  if (valid && types & xplmType_Data) {
     int n = XPLMGetDatab(ref, bytesBuf, 0, maxBytes);
     return std::string(bytesBuf, n);
   }

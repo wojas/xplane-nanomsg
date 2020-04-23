@@ -15,6 +15,7 @@ public:
   XPLMDataRef ref;
   bool writable;
   XPLMDataTypeID types; // bitmap
+  bool valid;
 
   [[nodiscard]] std::unique_ptr<xplane::DataRef> asProtobufData() const;
   [[nodiscard]] int getInt() const;
