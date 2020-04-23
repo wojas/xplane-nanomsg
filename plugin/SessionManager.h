@@ -16,6 +16,8 @@ private:
   // Map of all active sessions by sessionId
   std::map<std::string,S_Session> sessions = {};
 
+  void remove(const std::string & sessionId);
+
 public:
   // Get a session. Returns a nullptr if the session does not exist.
   [[nodiscard]] S_Session get(const std::string & sessionId) const;

@@ -8,8 +8,8 @@
 
 #include <xplane.pb.h>
 
-// DefaultTTL is the default session ttl in seconds if none was set
-static const int DEFAULT_TTL = 10;
+// The default session ttl in seconds if none was set
+static const int DEFAULT_SESSION_TTL = 10;
 
 class Session {
 public:
@@ -24,6 +24,9 @@ public:
 
   // Unix timestamp we last heard from the client.
   time_t lastSeen;
+
+  // Unix timestamp that this session was created.
+  time_t created;
 
   // Session options set during creation.
   xplane::SessionOptions opt;
