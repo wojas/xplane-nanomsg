@@ -20,7 +20,7 @@ fi
 
 mkdir -p build
 pushd build
-cmake ..
+cmake .. "$@"
 make -j
 if [ "$(uname)" = "Darwin" ]; then
     if [ ! -z "$CODESIGN_ID" ]; then

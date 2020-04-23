@@ -48,8 +48,7 @@ public:
 
   // Dispatches incoming commands to their appropriate handlers and
   // updates the response message to be sent to the client.
-  void dispatch(const std::unique_ptr<xplane::Request> &req,
-                std::unique_ptr<xplane::Response> &rep);
+  void dispatch(const xplane::Request * req, xplane::Response * rep);
 };
 
 

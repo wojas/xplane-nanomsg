@@ -1,10 +1,14 @@
 #include <nng/nng.h>
 #include <nng/protocol/reqrep0/rep.h>
+#include <google/protobuf/arena.h>
 
 #include <utility>
 
 #include "Commands.h"
 #include "Utils.h"
+
+
+using google::protobuf::Arena;
 
 
 Commands::Commands(std::string url, S_Statistics &stats, S_Position &position, S_SessionManager &sm)
@@ -72,7 +76,7 @@ bool Commands::close() {
 
 void Commands::handle() {
   for (;;) {
-    DEBUGLOG("@@@ Checking for requests");
+    DEBUGLOG("Checking for requests");
     auto pb = recv();
     if (!pb) {
       return; // done
@@ -80,8 +84,9 @@ void Commands::handle() {
     DEBUGLOG("Request received");
     stats->st->set_command_receives(stats->st->command_receives()+1);
 
-    auto req = std::make_unique<xplane::Request>();
-    auto rep = std::make_unique<xplane::Response>();
+    Arena arena;
+    auto req = Arena::CreateMessage<xplane::Request>(&arena);
+    auto rep = Arena::CreateMessage<xplane::Response>(&arena);
     if (!req->ParseFromString(*pb)) {
       stats->st->set_command_parse_errors(stats->st->command_parse_errors()+1);
       // Send error response
@@ -98,9 +103,7 @@ void Commands::handle() {
   }
 }
 
-void Commands::dispatch(const std::unique_ptr<xplane::Request> & req,
-                        std::unique_ptr<xplane::Response> & rep) {
-
+void Commands::dispatch(const xplane::Request * req, xplane::Response * rep) {
   auto cmd = req->command();
   std::string sessionId = req->header().session_id();
   auto session = sessionManager->get(sessionId);

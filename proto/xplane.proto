@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package xplane;
 
+option cc_enable_arenas = true;
+
 // The Header is a required part of the request and will be
 // returned in the response.
 message Header {
